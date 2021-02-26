@@ -1,0 +1,452 @@
+\chapter{Robotic Arm with Revolute Joints}
+
+\begin{figure}
+    \begin{center}
+        \input{link}
+        \caption{A link and link parameters.}
+    \end{center}
+\end{figure}
+
+
+
+
+{
+\tiny
+
+\begin{align*}
+    R_i
+        &= \exp(L_{q_i}) = \exp(L_j q^j_i) = \exp(L_{\hat{q}_i} \theta_i) \\
+    \frac{\diff R_i}{\diff t}
+        &= L_{\dot{q}_i} \cdot R_i = L_j (\dot{q}^j_i) \cdot R_i = (L_{\hat{q}_i} \dot{\theta}_i) \cdot R_i
+\end{align*}
+
+\begin{equation*}
+    L_x =
+    \begin{pmatrix}
+           &    &    \\
+           &    & -1 \\
+           &  1 &    \\
+    \end{pmatrix} \,,\quad
+    L_y =
+    \begin{pmatrix}
+           &    &  1 \\
+           &    &    \\
+        -1 &    &    \\
+    \end{pmatrix} \,,\quad
+    L_z =
+    \begin{pmatrix}
+           & -1 &    \\
+         1 &    &    \\
+           &    &    \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    R =
+    \begin{pmatrix}
+        R_1 & R_1 R_2 & R_1 R_2 R_3 & R_1 R_2 R_3 R_4 & R_1 R_2 R_3 R_4 R_5 & R_1 R_2 R_3 R_4 R_5 R_6 & R_1 R_2 R_3 R_4 R_5 R_6 R_7 \\
+            &     R_2 &     R_2 R_3 &     R_2 R_3 R_4 &     R_2 R_3 R_4 R_5 &     R_2 R_3 R_4 R_5 R_6 &     R_2 R_3 R_4 R_5 R_6 R_7 \\
+            &         &         R_3 &         R_3 R_4 &         R_3 R_4 R_5 &         R_3 R_4 R_5 R_6 &         R_3 R_4 R_5 R_6 R_7 \\
+            &         &             &             R_4 &             R_4 R_5 &             R_4 R_5 R_6 &             R_4 R_5 R_6 R_7 \\
+            &         &             &                 &                 R_5 &                 R_5 R_6 &                 R_5 R_6 R_7 \\
+            &         &             &                 &                     &                     R_6 &                     R_6 R_7 \\
+            &         &             &                 &                     &                         &                         R_7 \\
+    \end{pmatrix}
+\end{equation*}
+
+
+
+
+
+\begin{equation*}
+    \partial_1 R =
+    \begin{pmatrix}
+        (dR_1) & (dR_1) R_2 & (dR_1) R_2 R_3 & (dR_1) R_2 R_3 R_4 & (dR_1) R_2 R_3 R_4 R_5 & (dR_1) R_2 R_3 R_4 R_5 R_6 & (dR_1) R_2 R_3 R_4 R_5 R_6 R_7 \\
+        &         &             &                 &                     &                         &                             \\
+        &         &             &                 &                     &                         &                             \\
+        &         &             &                 &                     &                         &                             \\
+        &         &             &                 &                     &                         &                             \\
+        &         &             &                 &                     &                         &                             \\
+        &         &             &                 &                     &                         &                             \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    \partial_2 R =
+    \begin{pmatrix}
+            & R_1 (dR_2) & R_1 (dR_2) R_3 & R_1 (dR_2) R_3 R_4 & R_1 (dR_2) R_3 R_4 R_5 & R_1 (dR_2) R_3 R_4 R_5 R_6 & R_1 (dR_2) R_3 R_4 R_5 R_6 R_7 \\
+            &     (dR_2) &     (dR_2) R_3 &     (dR_2) R_3 R_4 &     (dR_2) R_3 R_4 R_5 &     (dR_2) R_3 R_4 R_5 R_6 &     (dR_2) R_3 R_4 R_5 R_6 R_7 \\
+            &          &              &                  &                      &                          &                              \\
+            &          &              &                  &                      &                          &                              \\
+            &          &              &                  &                      &                          &                              \\
+            &          &              &                  &                      &                          &                              \\
+            &          &              &                  &                      &                          &                              \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    \partial_3 R =
+    \begin{pmatrix}
+            &         & R_1 R_2 (dR_3) & R_1 R_2 (dR_3) R_4 & R_1 R_2 (dR_3) R_4 R_5 & R_1 R_2 (dR_3) R_4 R_5 R_6 & R_1 R_2 (dR_3) R_4 R_5 R_6 R_7 \\
+            &         &     R_2 (dR_3) &     R_2 (dR_3) R_4 &     R_2 (dR_3) R_4 R_5 &     R_2 (dR_3) R_4 R_5 R_6 &     R_2 (dR_3) R_4 R_5 R_6 R_7 \\
+            &         &         (dR_3) &         (dR_3) R_4 &         (dR_3) R_4 R_5 &         (dR_3) R_4 R_5 R_6 &         (dR_3) R_4 R_5 R_6 R_7 \\
+            &         &              &                  &                      &                          &                              \\
+            &         &              &                  &                      &                          &                              \\
+            &         &              &                  &                      &                          &                              \\
+            &         &              &                  &                      &                          &                              \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    \partial_4 R =
+    \begin{pmatrix}
+            &         &             & R_1 R_2 R_3 (dR_4) & R_1 R_2 R_3 (dR_4) R_5 & R_1 R_2 R_3 (dR_4) R_5 R_6 & R_1 R_2 R_3 (dR_4) R_5 R_6 R_7 \\
+            &         &             &     R_2 R_3 (dR_4) &     R_2 R_3 (dR_4) R_5 &     R_2 R_3 (dR_4) R_5 R_6 &     R_2 R_3 (dR_4) R_5 R_6 R_7 \\
+            &         &             &         R_3 (dR_4) &         R_3 (dR_4) R_5 &         R_3 (dR_4) R_5 R_6 &         R_3 (dR_4) R_5 R_6 R_7 \\
+            &         &             &             (dR_4) &             (dR_4) R_5 &             (dR_4) R_5 R_6 &             (dR_4) R_5 R_6 R_7 \\
+            &         &             &                    &                        &                            &                                \\
+            &         &             &                    &                        &                            &                                \\
+            &         &             &                    &                        &                            &                                \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    \partial_5 R =
+    \begin{pmatrix}
+            &         &             &                 & R_1 R_2 R_3 R_4 (dR_5) & R_1 R_2 R_3 R_4 (dR_5) R_6 & R_1 R_2 R_3 R_4 (dR_5) R_6 R_7 \\
+            &         &             &                 &     R_2 R_3 R_4 (dR_5) &     R_2 R_3 R_4 (dR_5) R_6 &     R_2 R_3 R_4 (dR_5) R_6 R_7 \\
+            &         &             &                 &         R_3 R_4 (dR_5) &         R_3 R_4 (dR_5) R_6 &         R_3 R_4 (dR_5) R_6 R_7 \\
+            &         &             &                 &             R_4 (dR_5) &             R_4 (dR_5) R_6 &             R_4 (dR_5) R_6 R_7 \\
+            &         &             &                 &                 (dR_5) &                 (dR_5) R_6 &                 (dR_5) R_6 R_7 \\
+            &         &             &                 &                        &                            &                                \\
+            &         &             &                 &                        &                            &                                \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    \partial_6 R =
+    \begin{pmatrix}
+            &         &             &                 &                     & R_1 R_2 R_3 R_4 R_5 (dR_6) & R_1 R_2 R_3 R_4 R_5 (dR_6) R_7 \\
+            &         &             &                 &                     &     R_2 R_3 R_4 R_5 (dR_6) &     R_2 R_3 R_4 R_5 (dR_6) R_7 \\
+            &         &             &                 &                     &         R_3 R_4 R_5 (dR_6) &         R_3 R_4 R_5 (dR_6) R_7 \\
+            &         &             &                 &                     &             R_4 R_5 (dR_6) &             R_4 R_5 (dR_6) R_7 \\
+            &         &             &                 &                     &                 R_5 (dR_6) &                 R_5 (dR_6) R_7 \\
+            &         &             &                 &                     &                     (dR_6) &                     (dR_6) R_7 \\
+            &         &             &                 &                     &                         &                                   \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    \partial_7 R =
+    \begin{pmatrix}
+            &         &             &                 &                      &                         & R_1 R_2 R_3 R_4 R_5 R_6 (dR_7) \\
+            &         &             &                 &                      &                         &     R_2 R_3 R_4 R_5 R_6 (dR_7) \\
+            &         &             &                 &                      &                         &         R_3 R_4 R_5 R_6 (dR_7) \\
+            &         &             &                 &                      &                         &             R_4 R_5 R_6 (dR_7) \\
+            &         &             &                 &                      &                         &                 R_5 R_6 (dR_7) \\
+            &         &             &                 &                      &                         &                     R_6 (dR_7) \\
+            &         &             &                 &                      &                         &                         (dR_7) \\
+    \end{pmatrix}
+\end{equation*}
+
+
+
+\begin{equation*}
+    R^T =
+    \begin{pmatrix}
+        R_1^T &  &  &  &  &  & \\
+        R_2^T R_1^T & R_2^T &  &  &  &  & \\
+        R_3^T R_2^T R_1^T & R_3^T R_2^T & R_3^T &  &  &  & \\
+        R_4^T R_3^T R_2^T R_1^T & R_4^T R_3^T R_2^T & R_4^T R_3^T & R_4^T &  &  & \\
+        R_5^T R_4^T R_3^T R_2^T R_1^T & R_5^T R_4^T R_3^T R_2^T & R_5^T R_4^T R_3^T & R_5^T R_4^T & R_5^T &  & \\
+        R_6^T R_5^T R_4^T R_3^T R_2^T R_1^T & R_6^T R_5^T R_4^T R_3^T R_2^T & R_6^T R_5^T R_4^T R_3^T & R_6^T R_5^T R_4^T & R_6^T R_5^T & R_6^T & \\
+        R_7^T R_6^T R_5^T R_4^T R_3^T R_2^T R_1^T & R_7^T R_6^T R_5^T R_4^T R_3^T R_2^T & R_7^T R_6^T R_5^T R_4^T R_3^T & R_7^T R_6^T R_5^T R_4^T & R_7^T R_6^T R_5^T  & R_7^T R_6^T & R_7^T\\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{align*}
+    \theta &=
+        \begin{pmatrix}
+            \theta_1 & \theta_2 & \theta_3 & \theta_4 & \theta_5 & \theta_6 & \theta_7 \\
+        \end{pmatrix}^T \\
+    \hat{q} &=
+        \begin{pmatrix}
+            \hat{q}_1 & \hat{q}_2 & \hat{q}_3 & \hat{q}_4 & \hat{q}_5 & \hat{q}_6 & \hat{q}_7 \\
+        \end{pmatrix}^T \\
+    q &=
+        \begin{pmatrix}
+            q_1 & q_2 & q_3 & q_4 & q_5 & q_6 & q_7 \\
+        \end{pmatrix}^T \\
+      &= \hat{q} * \theta
+\end{align*}
+
+\begin{align*}
+    \dot{q} &=
+        \begin{pmatrix}
+            \dot{q}_1 & \dot{q}_2 & \dot{q}_3 & \dot{q}_4 & \dot{q}_5 & \dot{q}_6 & \dot{q}_7 \\
+        \end{pmatrix}^T \\
+            &= \hat{q} * \dot{\theta}
+\end{align*}
+
+\begin{equation*}
+    \omega = R^T \cdot \dot{q}
+\end{equation*}
+
+
+\begin{equation*}
+    I =
+    \begin{pmatrix}
+        I_1 &     &     &     &     &     &     \\
+            & I_2 &     &     &     &     &     \\
+            &     & I_3 &     &     &     &     \\
+            &     &     & I_4 &     &     &     \\
+            &     &     &     & I_5 &     &     \\
+            &     &     &     &     & I_6 &     \\
+            &     &     &     &     &     & I_7 \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{align*}
+    T^{rot} &= \dot{q}^T \cdot R \cdot I \cdot R^T \cdot \dot{q} \\
+            &= \dot{\theta}^T \cdot \hat{q}^T @ R \cdot I \cdot R^T @ \hat{q} \cdot \dot{\theta} \\
+            &= \dot{\theta}^T \cdot (R^T @ \hat{q})^T \cdot I \cdot (R^T @ \hat{q}) \cdot \dot{\theta} \\
+            &= \dot{\theta}^T \cdot \hat{q}^T @ \Big( R \cdot I \cdot R^T \Big) @ \hat{q} \cdot \dot{\theta}
+\end{align*}
+
+
+\begin{equation*}
+    C =
+    \begin{pmatrix}
+        r_1 & l_1 & l_1 & l_1 & l_1 & l_1 & l_1 \\
+            & r_2 & l_2 & l_2 & l_2 & l_2 & l_2 \\
+            &     & r_3 & l_3 & l_3 & l_3 & l_3 \\
+            &     &     & r_4 & l_4 & l_4 & l_4 \\
+            &     &     &     & r_5 & l_5 & l_5 \\
+            &     &     &     &     & r_6 & l_6 \\
+            &     &     &     &     &     & r_7 \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    c = R \cdot C =
+    \begin{pmatrix}
+        c_1^0 & c_2^0 & c_3^0 & c_4^0 & c_5^0 & c_6^0 & c_7^0 \\
+              & c_2^1 & c_3^1 & c_4^1 & c_5^1 & c_6^1 & c_7^1 \\
+              &       & c_3^2 & c_4^2 & c_5^2 & c_6^2 & c_7^2 \\
+              &       &       & c_4^3 & c_5^3 & c_6^3 & c_7^3 \\
+              &       &       &       & c_5^4 & c_6^4 & c_7^4 \\
+              &       &       &       &       & c_6^5 & c_7^5 \\
+              &       &       &       &       &       & c_7^6 \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{align*}
+    c_1^0 &= R_1 r_1 \\
+    c_2^0 &= R_1 l_1 + R_1 R_2 r_2 \\
+    c_3^0 &= R_1 l_1 + R_1 R_2 l_2 + R_1 R_2 R_3 r_3 \\
+    c_4^0 &= R_1 l_1 + R_1 R_2 l_2 + R_1 R_2 R_3 l_3 + R_1 R_2 R_3 R_4 r_4 \\
+    c_5^0 &= R_1 l_1 + R_1 R_2 l_2 + R_1 R_2 R_3 l_3 + R_1 R_2 R_3 R_4 l_4 + R_1 R_2 R_3 R_4 R_5 r_5 \\
+    c_6^0 &= R_1 l_1 + R_1 R_2 l_2 + R_1 R_2 R_3 l_3 + R_1 R_2 R_3 R_4 l_4 + R_1 R_2 R_3 R_4 R_5 l_5 + R_1 R_2 R_3 R_4 R_5 R_6 r_6 \\
+    c_7^0 &= R_1 l_1 + R_1 R_2 l_2 + R_1 R_2 R_3 l_3 + R_1 R_2 R_3 R_4 l_4 + R_1 R_2 R_3 R_4 R_5 l_5 + R_1 R_2 R_3 R_4 R_5 R_6 l_6 + R_1 R_2 R_3 R_4 R_5 R_6 R_7 r_7
+\end{align*}
+
+\begin{align*}
+    c_1^0 &= R_1 r_1 \\
+    c_2^0 &= R_1 (l_1 + R_2 r_2) \,, \qquad\qquad\quad\; c_2^1 = R_2 r_2 \\
+    c_3^0 &= R_1 [l_1 + R_2 (l_2 + R_3 r_3)] \,, \quad c_3^1 = R_2 (l_2 + R_3 r_3) \,, \quad c_3^2 = R_3 r_3 \\
+    c_4^0 &= R_1 \big(l_1 + R_2 [l_2 + R_3 (l_3 + R_4 r_4)]\big) \\
+    c_5^0 &= R_1 \big[l_1 + R_2 \big(l_2 + R_3 [l_3 + R_4 (l_4 + R_5 r_5)]\big)\big] \\
+    c_6^0 &= R_1 \Big(l_1 + R_2 \big[l_2 + R_3 \big(l_3 + R_4 [l_4 + R_5 (l_5 + R_6 r_6)]\big)\big]\Big) \\
+    c_7^0 &= R_1 \Big[l_1 + R_2 \Big(l_2 + R_3 \big[l_3 + R_4 \big(l_4 + R_5 [l_5 + R_6 (l_6 + R_7 r_7)]\big)\big]\Big)\Big]
+\end{align*}
+
+\begin{align*}
+    V = g \cdot \sum_i c^0_i m_i
+\end{align*}
+
+
+\begin{align*}
+    - \dot{c}_1^0 &= L_{c_1^0} \dot{q}_1 \\
+    - \dot{c}_2^0 &= L_{c_2^0} \dot{q}_1 + R_1 L_{c_2^1} \dot{q}_2 \\
+    - \dot{c}_3^0 &= L_{c_3^0} \dot{q}_1 + R_1 L_{c_3^1} \dot{q}_2 + R_1 R_2 L_{c_3^2} \dot{q}_3 \\
+    - \dot{c}_4^0 &= L_{c_4^0} \dot{q}_1 + R_1 L_{c_4^1} \dot{q}_2 + R_1 R_2 L_{c_4^2} \dot{q}_3 + R_1 R_2 R_3 L_{c_4^3} \dot{q}_4 \\
+    - \dot{c}_5^0 &= L_{c_5^0} \dot{q}_1 + R_1 L_{c_5^1} \dot{q}_2 + R_1 R_2 L_{c_5^2} \dot{q}_3 + R_1 R_2 R_3 L_{c_5^3} \dot{q}_4 + R_1 R_2 R_3 R_4 L_{c_5^4} \dot{q}_5 \\
+    - \dot{c}_6^0 &= L_{c_6^0} \dot{q}_1 + R_1 L_{c_6^1} \dot{q}_2 + R_1 R_2 L_{c_6^2} \dot{q}_3 + R_1 R_2 R_3 L_{c_6^3} \dot{q}_4 + R_1 R_2 R_3 R_4 L_{c_6^4} \dot{q}_5 + R_1 R_2 R_3 R_4 R_5 L_{c_6^5} \dot{q}_6 \\
+    - \dot{c}_7^0 &= L_{c_7^0} \dot{q}_1 + R_1 L_{c_7^1} \dot{q}_2 + R_1 R_2 L_{c_7^2} \dot{q}_3 + R_1 R_2 R_3 L_{c_7^3} \dot{q}_4 + R_1 R_2 R_3 R_4 L_{c_7^4} \dot{q}_5 + R_1 R_2 R_3 R_4 R_5 L_{c_7^5} \dot{q}_6 + R_1 R_2 R_3 R_4 R_5 R_6 L_{c_7^6} \dot{q}_7
+\end{align*}
+
+\begin{align*}
+    \tilde{L}_c =
+    \begin{pmatrix}
+        L_{c_1^0} &           &           &           &           &           &           \\
+        L_{c_2^0} & L_{c_2^1} &           &           &           &           &           \\
+        L_{c_3^0} & L_{c_3^1} & L_{c_3^2} &           &           &           &           \\
+        L_{c_4^0} & L_{c_4^1} & L_{c_4^2} & L_{c_4^3} &           &           &           \\
+        L_{c_5^0} & L_{c_5^1} & L_{c_5^2} & L_{c_5^3} & L_{c_5^4} &           &           \\
+        L_{c_6^0} & L_{c_6^1} & L_{c_6^2} & L_{c_6^3} & L_{c_6^4} & L_{c_6^5} &           \\
+        L_{c_7^0} & L_{c_7^1} & L_{c_7^2} & L_{c_7^3} & L_{c_7^4} & L_{c_7^5} & L_{c_7^6} \\
+    \end{pmatrix}
+\end{align*}
+
+
+\begin{align*}
+    L_c =
+    \begin{pmatrix}
+        L_{c_1^0} &               &                   &                       &                           &                               &   \\
+        L_{c_2^0} & R_1 L_{c_2^1} &                   &                       &                           &                               &   \\
+        L_{c_3^0} & R_1 L_{c_3^1} & R_1 R_2 L_{c_3^2} &                       &                           &                               &   \\
+        L_{c_4^0} & R_1 L_{c_4^1} & R_1 R_2 L_{c_4^2} & R_1 R_2 R_3 L_{c_4^3} &                           &                               &   \\
+        L_{c_5^0} & R_1 L_{c_5^1} & R_1 R_2 L_{c_5^2} & R_1 R_2 R_3 L_{c_5^3} & R_1 R_2 R_3 R_4 L_{c_5^4} &                               &   \\
+        L_{c_6^0} & R_1 L_{c_6^1} & R_1 R_2 L_{c_6^2} & R_1 R_2 R_3 L_{c_6^3} & R_1 R_2 R_3 R_4 L_{c_6^4} & R_1 R_2 R_3 R_4 R_5 L_{c_6^5} &   \\
+        L_{c_7^0} & R_1 L_{c_7^1} & R_1 R_2 L_{c_7^2} & R_1 R_2 R_3 L_{c_7^3} & R_1 R_2 R_3 R_4 L_{c_7^4} & R_1 R_2 R_3 R_4 R_5 L_{c_7^5} & R_1 R_2 R_3 R_4 R_5 R_6 L_{c_7^6} \\
+    \end{pmatrix}
+\end{align*}
+
+\begin{align*}
+    - \dot{c^0} = L_c \cdot \dot{q}
+\end{align*}
+
+
+\begin{align*}
+    L_c @ \hat{q} =
+    \begin{pmatrix}
+        L_{c_1^0} \hat{q}_1 & & & & & &   \\
+        L_{c_2^0} \hat{q}_1 & R_1 L_{c_2^1} \hat{q}_2 & & & & &   \\
+        L_{c_3^0} \hat{q}_1 & R_1 L_{c_3^1} \hat{q}_2 & R_1 R_2 L_{c_3^2} \hat{q}_3 & & & &   \\
+        L_{c_4^0} \hat{q}_1 & R_1 L_{c_4^1} \hat{q}_2 & R_1 R_2 L_{c_4^2} \hat{q}_3 & R_1 R_2 R_3 L_{c_4^3} \hat{q}_4 & & &   \\
+        L_{c_5^0} \hat{q}_1 & R_1 L_{c_5^1} \hat{q}_2 & R_1 R_2 L_{c_5^2} \hat{q}_3 & R_1 R_2 R_3 L_{c_5^3} \hat{q}_4 & R_1 R_2 R_3 R_4 L_{c_5^4} \hat{q}_5 & &   \\
+        L_{c_6^0} \hat{q}_1 & R_1 L_{c_6^1} \hat{q}_2 & R_1 R_2 L_{c_6^2} \hat{q}_3 & R_1 R_2 R_3 L_{c_6^3} \hat{q}_4 & R_1 R_2 R_3 R_4 L_{c_6^4} \hat{q}_5 & R_1 R_2 R_3 R_4 R_5 L_{c_6^5} \hat{q}_6 &   \\
+        L_{c_7^0} \hat{q}_1 & R_1 L_{c_7^1} \hat{q}_2 & R_1 R_2 L_{c_7^2} \hat{q}_3 & R_1 R_2 R_3 L_{c_7^3} \hat{q}_4 & R_1 R_2 R_3 R_4 L_{c_7^4} \hat{q}_5 & R_1 R_2 R_3 R_4 R_5 L_{c_7^5} \hat{q}_6 & R_1 R_2 R_3 R_4 R_5 R_6 L_{c_7^6} \hat{q}_7 \\
+    \end{pmatrix}
+\end{align*}
+
+
+\begin{equation*}
+    M =
+    \begin{pmatrix}
+        m_1 \mathbb{I}_3 &  &  &  &  &  &  \\
+         & m_2 \mathbb{I}_3 &  &  &  &  &  \\
+         &  & m_3 \mathbb{I}_3 &  &  &  &  \\
+         &  &  & m_4 \mathbb{I}_3 &  &  &  \\
+         &  &  &  & m_5 \mathbb{I}_3 &  &  \\
+         &  &  &  &  & m_6 \mathbb{I}_3 &  \\
+         &  &  &  &  &  & m_7 \mathbb{I}_3 \\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{align*}
+    T^{tra} &= \sum_i m_i \dot{c}_i^0 \cdot \dot{c}_i^0 \\
+            &= \dot{\theta}^T \cdot \hat{q}^T @ (L_c^T M L_c) @ \hat{q} \cdot \dot{\theta} \\
+            &= \dot{\theta}^T \cdot (L_c @ \hat{q})^T M (L_c @ \hat{q}) \cdot \dot{\theta}
+\end{align*}
+
+\begin{align*}
+    L_c^T =
+    \begin{pmatrix}
+        L_{c_1^0}^T & L_{c_2^0}^T & L_{c_3^0}^T & L_{c_4^0}^T & L_{c_5^0}^T & L_{c_6^0}^T & L_{c_7^0}^T \\
+         & L_{c_2^1}^T R_1^T & L_{c_3^1}^T R_1^T & L_{c_4^1}^T R_1^T & L_{c_5^1}^T R_1^T & L_{c_6^1}^T R_1^T & L_{c_7^1}^T R_1^T \\
+         &  & L_{c_3^2}^T R_2^T R_1^T  & L_{c_4^2}^T R_2^T R_1^T  & L_{c_5^2}^T R_2^T R_1^T  & L_{c_6^2}^T R_2^T R_1^T  & L_{c_7^2}^T R_2^T R_1^T \\
+         &  &  & L_{c_4^3}^T R_3^T R_2^T R_1^T & L_{c_5^3}^T R_3^T R_2^T R_1^T & L_{c_6^3}^T R_3^T R_2^T R_1^T & L_{c_7^3}^T R_3^T R_2^T R_1^T \\
+         &  &  &  & L_{c_5^4}^T R_4^T R_3^T R_2^T R_1^T & L_{c_6^4}^T R_4^T R_3^T R_2^T R_1^T & L_{c_7^4}^T R_4^T R_3^T R_2^T R_1^T \\
+         &  &  &  &  & L_{c_6^5}^T R_5^T R_4^T R_3^T R_2^T R_1^T & L_{c_7^5}^T R_5^T R_4^T R_3^T R_2^T R_1^T \\
+         &  &  &  &  &  & L_{c_7^6}^T R_6^T R_5^T R_4^T R_3^T R_2^T R_1^T  \\
+    \end{pmatrix}
+\end{align*}
+
+
+
+
+\begin{equation*}
+    S_1 = m_1
+    \begin{pmatrix}
+         L_{c_1^0}^T L_{c_1^0} &  &  &  &  &  & \\
+          & 0 &  &  &  &  & \\
+          &  & 0 &  &  &  & \\
+          &  &  & 0 &  &  & \\
+          &  &  &  & 0 &  & \\
+          &  &  &  &  & 0 & \\
+          &  &  &  &  &  & 0\\
+    \end{pmatrix}
+\end{equation*}
+
+
+\begin{equation*}
+    S_2 = m_2
+    \begin{pmatrix}
+         L_{c_2^0}^T L_{c_2^0} & L_{c_2^0}^T R_1 L_{c_2^1} &  &  &  &  & \\
+         L_{c_2^1}^T R_1^T L_{c_2^0} & L_{c_2^1}^T L_{c_2^1} & &  &  &  & \\
+          &  & 0 &  &  &  & \\
+          &  &  & 0 &  &  & \\
+          &  &  &  & 0 &  & \\
+          &  &  &  &  & 0 & \\
+          &  &  &  &  &  & 0\\
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    S_3 = m_3
+    \begin{pmatrix}
+         L_{c_3^0}^T L_{c_3^0} & L_{c_3^0}^T R_1 L_{c_3^1} & L_{c_3^0}^T R_1 R_2 L_{c_3^2} &  &  &  & \\
+         L_{c_3^1}^T R_1^T L_{c_3^0} & L_{c_3^1}^T L_{c_3^1} & L_{c_3^1}^T R_2 L_{c_3^2}  &  &  &  & \\
+         L_{c_3^2}^T R_2^T R_1^T L_{c_3^0} & L_{c_3^2}^T R_2^T L_{c_3^1} & L_{c_3^2}^T L_{c_3^2} &  &  &  & \\
+          &  &  & 0 &  &  & \\
+          &  &  &  & 0 &  & \\
+          &  &  &  &  & 0 & \\
+          &  &  &  &  &  & 0
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    S_4 = m_4
+    \begin{pmatrix}
+         L_{c_4^0}^T L_{c_4^0} & L_{c_4^0}^T R_1 L_{c_4^1} & L_{c_4^0}^T R_1 R_2 L_{c_4^2} & L_{c_4^0}^T R_1 R_2 R_3 L_{c_4^3} &  &  & \\
+         L_{c_4^1}^T R_1^T L_{c_4^0} & L_{c_4^1}^T L_{c_4^1} & L_{c_4^1}^T R_2 L_{c_4^2}  & L_{c_4^1}^T R_2 R_3 L_{c_4^3} &  &  & \\
+         L_{c_4^2}^T R_2^T R_1^T L_{c_4^0} & L_{c_4^2}^T R_2^T L_{c_4^1} & L_{c_4^2}^T L_{c_4^2} & L_{c_4^2}^T R_3 L_{c_4^3} &  &  & \\
+         L_{c_4^3}^T R_3^T R_2^T R_1^T L_{c_4^0} & L_{c_4^3}^T R_3^T R_2^T L_{c_4^1} & L_{c_4^3}^T R_3^T L_{c_4^2} & L_{c_4^3}^T L_{c_4^3} &  &  & \\
+         &  &  &  & 0 &  & \\
+         &  &  &  &  & 0 & \\
+         &  &  &  &  &  & 0
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    S_5 = m_5
+    \begin{pmatrix}
+         L_{c_5^0}^T L_{c_5^0} & L_{c_5^0}^T R_1 L_{c_5^1} & L_{c_5^0}^T R_1 R_2 L_{c_5^2} & L_{c_5^0}^T R_1 R_2 R_3 L_{c_5^3} & L_{c_5^0}^T R_1 R_2 R_3 R_4 L_{c_5^4} &  & \\
+         L_{c_5^1}^T R_1^T L_{c_5^0} & L_{c_5^1}^T L_{c_5^1} & L_{c_5^1}^T R_2 L_{c_5^2}  & L_{c_5^1}^T R_2 R_3 L_{c_5^3} & L_{c_5^1}^T R_2 R_3 R_4 L_{c_5^4} &  & \\
+         L_{c_5^2}^T R_2^T R_1^T L_{c_5^0} & L_{c_5^2}^T R_2^T L_{c_5^1} & L_{c_5^2}^T L_{c_5^2} & L_{c_5^2}^T R_3 L_{c_5^3} & L_{c_5^2}^T R_3 R_4 L_{c_5^4} &  & \\
+         L_{c_5^3}^T R_3^T R_2^T R_1^T L_{c_5^0} & L_{c_5^3}^T R_3^T R_2^T L_{c_5^1} & L_{c_5^3}^T R_3^T L_{c_5^2} & L_{c_5^3}^T L_{c_5^3} & L_{c_5^3}^T R_4 L_{c_5^4} &  & \\
+         L_{c_5^4}^T R_4^T R_3^T R_2^T R_1^T L_{c_5^0} & L_{c_5^4}^T R_4^T R_3^T R_2^T L_{c_5^1} & L_{c_5^4}^T R_4^T R_3^T L_{c_5^2} & L_{c_5^4}^T R_4^T L_{c_5^3} & L_{c_5^4}^T L_{c_5^4} &  & \\
+         &  &  &  &  & 0 & \\
+         &  &  &  &  &  & 0
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    S_6 = m_6
+    \begin{pmatrix}
+         L_{c_6^0}^T L_{c_6^0} & L_{c_6^0}^T R_1 L_{c_6^1} & L_{c_6^0}^T R_1 R_2 L_{c_6^2} & L_{c_6^0}^T R_1 R_2 R_3 L_{c_6^3} & L_{c_6^0}^T R_1 R_2 R_3 R_4 L_{c_6^4} & L_{c_6^0}^T R_1 R_2 R_3 R_4 R_5 L_{c_6^5} & \\
+         L_{c_6^1}^T R_1^T L_{c_6^0} & L_{c_6^1}^T L_{c_6^1} & L_{c_6^1}^T R_2 L_{c_6^2}  & L_{c_6^1}^T R_2 R_3 L_{c_6^3} & L_{c_6^1}^T R_2 R_3 R_4 L_{c_6^4} & L_{c_6^1}^T R_2 R_3 R_4 R_5 L_{c_6^5} & \\
+         L_{c_6^2}^T R_2^T R_1^T L_{c_6^0} & L_{c_6^2}^T R_2^T L_{c_6^1} & L_{c_6^2}^T L_{c_6^2} & L_{c_6^2}^T R_3 L_{c_6^3} & L_{c_6^2}^T R_3 R_4 L_{c_6^4} & L_{c_6^2}^T R_3 R_4 R_5 L_{c_6^5} & \\
+         L_{c_6^3}^T R_3^T R_2^T R_1^T L_{c_6^0} & L_{c_6^3}^T R_3^T R_2^T L_{c_6^1} & L_{c_6^3}^T R_3^T L_{c_6^2} & L_{c_6^3}^T L_{c_6^3} & L_{c_6^3}^T R_4 L_{c_6^4} & L_{c_6^3}^T R_4 R_5 L_{c_6^5} & \\
+         L_{c_6^4}^T R_4^T R_3^T R_2^T R_1^T L_{c_6^0} & L_{c_6^4}^T R_4^T R_3^T R_2^T L_{c_6^1} & L_{c_6^4}^T R_4^T R_3^T L_{c_6^2} & L_{c_6^4}^T R_4^T L_{c_6^3} & L_{c_6^4}^T L_{c_6^4} & L_{c_6^4}^T R_5 L_{c_6^5} & \\
+         L_{c_6^5}^T R_5^T R_4^T R_3^T R_2^T R_1^T L_{c_6^0} & L_{c_6^5}^T R_5^T R_4^T R_3^T R_2^T L_{c_6^1} & L_{c_6^5}^T R_5^T R_4^T R_3^T L_{c_6^2} & L_{c_6^5}^T R_5^T R_4^T L_{c_6^3} & L_{c_6^5}^T R_5^T L_{c_6^4} & L_{c_6^5}^T L_{c_6^5} &  \\
+         &  &  &  &  &  & 0
+    \end{pmatrix}
+\end{equation*}
+
+\begin{equation*}
+    S_7 = m_7
+    \begin{pmatrix}
+         L_{c_7^0}^T L_{c_7^0} & L_{c_7^0}^T R_1 L_{c_7^1} & L_{c_7^0}^T R_1 R_2 L_{c_7^2} & L_{c_7^0}^T R_1 R_2 R_3 L_{c_7^3} & L_{c_7^0}^T R_1 R_2 R_3 R_4 L_{c_7^4} & L_{c_7^0}^T R_1 R_2 R_3 R_4 R_5 L_{c_7^5} & L_{c_7^0}^T R_1 R_2 R_3 R_4 R_5 R_6 L_{c_7^6} \\
+         L_{c_7^1}^T R_1^T L_{c_7^0} & L_{c_7^1}^T L_{c_7^1} & L_{c_7^1}^T R_2 L_{c_7^2}  & L_{c_7^1}^T R_2 R_3 L_{c_7^3} & L_{c_7^1}^T R_2 R_3 R_4 L_{c_7^4} & L_{c_7^1}^T R_2 R_3 R_4 R_5 L_{c_7^5} & L_{c_7^1}^T R_2 R_3 R_4 R_5 R_6 L_{c_7^6} \\
+         L_{c_7^2}^T R_2^T R_1^T L_{c_7^0} & L_{c_7^2}^T R_2^T L_{c_7^1} & L_{c_7^2}^T L_{c_7^2} & L_{c_7^2}^T R_3 L_{c_7^3} & L_{c_7^2}^T R_3 R_4 L_{c_7^4} & L_{c_7^2}^T R_3 R_4 R_5 L_{c_7^5} & L_{c_7^2}^T R_3 R_4 R_5 R_6 L_{c_7^6} \\
+         L_{c_7^3}^T R_3^T R_2^T R_1^T L_{c_7^0} & L_{c_7^3}^T R_3^T R_2^T L_{c_7^1} & L_{c_7^3}^T R_3^T L_{c_7^2} & L_{c_7^3}^T L_{c_7^3} & L_{c_7^3}^T R_4 L_{c_7^4} & L_{c_7^3}^T R_4 R_5 L_{c_7^5} & L_{c_7^3}^T R_4 R_5 R_6 L_{c_7^6} \\
+         L_{c_7^4}^T R_4^T R_3^T R_2^T R_1^T L_{c_7^0} & L_{c_7^4}^T R_4^T R_3^T R_2^T L_{c_7^1} & L_{c_7^4}^T R_4^T R_3^T L_{c_7^2} & L_{c_7^4}^T R_4^T L_{c_7^3} & L_{c_7^4}^T L_{c_7^4} & L_{c_7^4}^T R_5 L_{c_7^5} & L_{c_7^4}^T R_5 R_6 L_{c_7^6} \\
+         L_{c_7^5}^T R_5^T R_4^T R_3^T R_2^T R_1^T L_{c_7^0} & L_{c_7^5}^T R_5^T R_4^T R_3^T R_2^T L_{c_7^1} & L_{c_7^5}^T R_5^T R_4^T R_3^T L_{c_7^2} & L_{c_7^5}^T R_5^T R_4^T L_{c_7^3} & L_{c_7^5}^T R_5^T L_{c_7^4} & L_{c_7^5}^T L_{c_7^5} & L_{c_7^5}^T R_6 L_{c_7^6} \\
+         L_{c_7^6}^T R_6^T R_5^T R_4^T R_3^T R_2^T R_1^T L_{c_7^0} & L_{c_7^6}^T R_6^T R_5^T R_4^T R_3^T R_2^T L_{c_7^1} & L_{c_7^6}^T R_6^T R_5^T R_4^T R_3^T L_{c_7^2} & L_{c_7^6}^T R_6^T R_5^T R_4^T L_{c_7^3} & L_{c_7^6}^T R_6^T R_5^T L_{c_7^4} & L_{c_7^6}^T R_6^T L_{c_7^5} & L_{c_7^6}^T L_{c_7^6}\\
+    \end{pmatrix}
+\end{equation*}
+
+
+}

@@ -1,0 +1,187 @@
+% New commands
+
+% Example
+% \newcommand{key}[#ofArguments]{command{#arg1}}
+
+% Use roman numbers for enumarate, and symbols for footnote
+\renewcommand{\labelenumi}{\roman{enumi})}
+%\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+% Highlighting in definitions
+\renewcommand{\emph}{\underline}
+
+% Math fonts
+\newcommand{\mrm}[1]{\mathrm{#1}}
+\newcommand{\mca}[1]{\mathcal{#1}}
+\newcommand{\mbb}[1]{\mathbb{#1}}
+
+
+% Misc. math ops
+\DeclareMathOperator{\mdl}{-mod}
+\DeclareMathOperator{\chara}{char}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\img}{im}
+\DeclareMathOperator{\Alt}{Alt}
+\DeclareMathOperator{\Sym}{Sym}
+\DeclareMathOperator{\Dom}{Dom}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\diff}{d\!}
+\DeclareMathOperator{\Deriv}{D}
+\DeclareMathOperator{\Der}{Der}
+\newcommand{\expp}[1]{\mathrm{e}^{#1}}
+
+
+% 3D operators
+\DeclareMathOperator{\grad}{grad}
+\DeclareMathOperator{\dive}{div}
+\DeclareMathOperator{\curl}{curl}
+
+% MAPS: Adjoint and identity maps
+\DeclareMathOperator{\Ad}{Ad}
+\DeclareMathOperator{\ad}{ad}
+\DeclareMathOperator{\id}{id}
+
+
+% MORPHISMS:
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\End}{End}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\Diff}{Diff}
+\DeclareMathOperator{\Inn}{Inn}
+\DeclareMathOperator{\Out}{Out}
+
+
+% Basis
+\newcommand{\B}{\mathcal{B}}
+
+
+% Sets
+\newcommand{\clsr}[1]{\overline{#1}}
+\newcommand{\cls}[2]{\mathrm{cl}_{#1} \! \left( {#2} \right)}
+\newcommand{\accum}[1]{\mathrm{ac}\left( #1 \right)}
+\newcommand{\sequence}[1]{\langle #1 \rangle}
+
+
+% SPACES: Function, Tangent, Cotangent spaces, Bundles, Sections
+\newcommand{\fctspace}[1]{\mathcal{C}^{#1}}
+\newcommand{\tanspace}[1]{\mathrm{T}_{#1}}
+\newcommand{\cotanspace}[1]{\mathrm{T}^{\ast}_{#1}}
+\newcommand{\tanbundle}{\mathrm{T}}
+\newcommand{\cotanbundle}{\mathrm{T}^{\ast}}
+\newcommand{\tensorbundle}[2]{\mathrm{T}^{#1}_{#2}}
+
+\newcommand{\sect}[1]{\Gamma \big( #1 \big)}
+\newcommand{\dforms}[2]{\Omega^{#1} \big( #2 \big)}
+\newcommand{\ip}[1]{\iota_{#1}}
+\newcommand{\hodge}{\star}
+\newcommand{\volform}[1]{\Om_{#1}}
+
+
+
+% Sphere, Torus, Disc
+\renewcommand{\S}{\mathcal{S}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\Disc}{\mathcal{D}}
+
+
+% ALGEBRAS: Exterior algebra, Lie algebra, Tensor algebra
+\DeclareMathOperator{\gl}{gl}
+\newcommand{\ealg}{\Lambda}
+\newcommand{\liealg}[1]{\mathfrak{#1}}
+\newcommand{\tensoralg}{\mathcal{T}}
+\newcommand{\awedge}{\tilde{\wedge}}
+
+
+% GROUPS: Groups, Matrices, and operators
+\DeclareMathOperator{\GL}{GL}
+\DeclareMathOperator{\Orthog}{O}
+\DeclareMathOperator{\SL}{SL}
+\DeclareMathOperator{\SO}{SO}
+
+\DeclareMathOperator{\Mat}{Mat}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\spec}{sp}
+\DeclareMathOperator{\Tr}{Tr}
+\newcommand{\transpose}{\intercal}
+
+
+% Coordinate frames
+\newcommand{\cooframe}[1]{\lbrace \mathbf{#1} \rbrace}
+\newcommand{\prim}[1]{ {#1}^{\prime}{} }
+\newcommand{\kronecker}{\delta}
+
+
+% Vector space operators
+\renewcommand{\sp}[2]{ \left\langle #1, #2 \right\rangle }
+\newcommand{\norm}[1]{ \left\Vert #1 \right\Vert }
+\newcommand{\abs}[1]{ \left\vert #1 \right\vert }
+\newcommand{\unitvec}[1]{ \hat{#1} }
+
+
+% Intervals
+\newcommand{\ooint}[2]{ \left( #1, #2 \right)}
+\newcommand{\ocint}[2]{ \left( #1, #2 \right]}
+\newcommand{\coint}[2]{ \left[ #1, #2 \right)}
+\newcommand{\ccint}[2]{ \left[ #1, #2 \right]}
+
+
+% NUMBERS, Division algebras - real and complex numbers, quaternions, and octonions
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\K}{\mathbb{K}}
+
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+
+\newcommand{\R}{\mathbb{R}}
+
+\renewcommand{\C}{\mathbb{C}}
+\newcommand{\im}{\i}
+\newcommand{\con}[1]{\overline{#1}}
+
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\q}[1]{\epsilon_{#1}}
+
+\renewcommand{\O}{\mathbb{O}}
+
+
+% Commutator, anti-commutator, and associator
+\newcommand{\com}[2]{ \left[ #1, #2 \right] }
+\newcommand{\acom}[2]{ \left\{ #1, #2 \right\} }
+\newcommand{\ass}[3]{ \left[ #1, #2, #3 \right] }
+
+
+% Greek alphabet
+\renewcommand{\a}{\alpha}
+\renewcommand{\b}{\beta}
+\renewcommand{\c}{\gamma}
+\renewcommand{\d}{\delta}
+\newcommand{\e}{\epsilon}
+\newcommand{\ve}{\varepsilon}
+\newcommand{\z}{\zeta}
+\renewcommand{\t}{\theta}
+\newcommand{\vt}{\vartheta}
+\renewcommand{\i}{\iota}
+\renewcommand{\k}{\kappa}
+\renewcommand{\l}{\lambda}
+\newcommand{\s}{\sigma}
+\newcommand{\vp}{\varphi}
+\newcommand{\om}{\omega}
+
+\newcommand{\Ga}{\Gamma}
+\renewcommand{\L}{\Lambda}
+\newcommand{\Om}{\Omega}
+\newcommand{\D}{\Delta}
+
+
+% % Left and right multiplication operators
+% \DeclareMathOperator{\Lmultip}{L}
+% \DeclareMathOperator{\Rmultip}{R}
+% \newcommand{\Lm}[1]{\Lmultip_{#1}}
+% \newcommand{\Rm}[1]{\Rmultip_{#1}}
+% % Physics operators
+% \newcommand{\Lag}{\mathcal{L}}
+% % Clifford algebras
+% \newcommand{\Cl}{\mathbb{C}l}
+% Dirac operator, Hilbert space,
+% \newcommand{\Do}{\slashed{\mathcal{D}}}
+% \newcommand{\Hilb}{\mathcal{H}}

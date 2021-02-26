@@ -1,0 +1,123 @@
+\documentclass[10pt, a4paper, twoside, openright]{report}
+\usepackage[a4paper, top=0cm, bottom=0cm, left=0cm, right=0cm, headsep=0.2cm]{geometry}
+
+
+% Global font
+\renewcommand{\familydefault}{\sfdefault}
+% \usepackage{helvet}       % helvet font family
+% \usepackage{avant}        % avant font family
+
+
+% Setting spacing:
+%\usepackage{setspace}
+%\onehalfspacing
+%\singlespacing
+%\doublespacing
+
+
+% Disabling indentation
+\setlength{\parindent}{0pt}
+
+
+% Language and encoding
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+
+
+% Setting the headings:
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+% clear all headers and footers
+\fancyhf{}
+% remove rule between header and text
+%\renewcommand{\headrulewidth}{0pt}
+% put page number in left header on even pages, right header on odd pages
+\fancyhead[LE,RO]{\textbf{\thepage}}
+% remove uppercase on chapter title
+\fancyhead[RE]{\nouppercase{\textbf{\leftmark}}}
+\fancyhead[LO]{\nouppercase{\textbf{\rightmark}}}
+
+
+% remove "Chapter" prefix
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\space#1}{}}
+
+
+% graphics
+\usepackage{graphicx}
+\usepackage{epstopdf}
+
+
+% math
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{mathrsfs}
+\usepackage{xfrac}
+\usepackage{cancel}
+\usepackage{tensor}
+\usepackage{slashed}
+
+
+% additional symbols
+\usepackage{textcomp}
+
+
+% enumerate and others
+\usepackage{paralist}
+
+
+% comment - big parts; beign/end {comment}
+\usepackage{verbatim}
+
+
+% tables
+\usepackage{array}
+\usepackage{booktabs}
+
+
+% formatting captions
+\usepackage{caption}
+
+
+% list of abbreviations/symbols; (Needs terminal compilation!)
+\usepackage{nomencl}
+\makenomenclature
+\renewcommand{\nomname}{List of Symbols}
+
+
+% adds ToC and Bibliografy in ToC
+\usepackage{tocbibind}
+
+
+% can change colours of text
+\usepackage[pdftex]{color}
+
+
+% math diagrams, plots
+\usepackage{tikz-cd}
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+% \usepackage{pgfplots}
+
+
+% Has to be at the end, before makeindex
+\usepackage[unicode]{hyperref}
+%\hypersetup{allcolors=black}
+\hypersetup{colorlinks, linkcolor=blue}
+
+
+% index
+\usepackage{makeidx}
+\makeindex
+\usepackage[totoc]{idxlayout}
+
+
+% Inverting colour on the pages
+%\usepackage{xcolor}
+%\pagecolor[cmyk]{1,1,1,1}
+%\color[cmyk]{0,0,0,0.7}
+
+\hypersetup{pdftitle=Notes - Modern Robotics}
+\hypersetup{pdfauthor=Juraj Vrábel}

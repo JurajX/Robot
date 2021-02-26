@@ -1,0 +1,27 @@
+\input{preamble}
+\input{theorems}
+\input{commands}
+
+\begin{document}
+
+    \pagenumbering{roman}
+    \pagestyle{empty}
+
+    \include{title}
+    \cleardoublepage
+    \pagestyle{fancy}
+
+    \setcounter{page}{1}
+    \pagenumbering{arabic}
+
+    \clearpage
+    \input{chapter_1}
+    \clearpage
+    \thispagestyle{empty}
+
+    \input{chapter_2}
+    \clearpage
+    \thispagestyle{empty}
+
+
+\end{document}

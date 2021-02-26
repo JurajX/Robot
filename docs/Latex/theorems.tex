@@ -1,0 +1,62 @@
+% New theorem styles:
+\newtheoremstyle{break_italic}  % name
+  {\topsep}                     % Space above, empty = `usual value'
+  {\topsep}                     % Space below
+  {\itshape}                    % Body font
+  {}                            % Indent amount (empty = no indent, \parindent = para indent)
+  {\bfseries}                   % Thm head font
+  {.}                           % Punctuation after thm head
+  {\newline}                    % Space after thm head: \newline = linebreak
+  {}                            % Thm head spec
+
+\newtheoremstyle{break_normal}  % name
+  {\topsep}                     % Space above, empty = `usual value'
+  {\topsep}                     % Space below
+  {}                            % Body font
+  {}                            % Indent amount (empty = no indent, \parindent = para indent)
+  {\bfseries}                   % Thm head font
+  {.}                           % Punctuation after thm head
+  {\newline}                    % Space after thm head: \newline = linebreak
+  {}                            % Thm head spec
+
+\newtheoremstyle{new_remark}    % name
+  {\topsep}                     % Space above, empty = `usual value'
+  {\topsep}                     % Space below
+  {}                            % Body font
+  {}                            % Indent amount (empty = no indent, \parindent = para indent)
+  {\itshape}                    % Thm head font
+  {.}                           % Punctuation after thm head
+  {\newline}                    % Space after thm head: \newline = linebreak
+  {}                            % Thm head spec
+
+
+
+% New theorems with style:
+\theoremstyle{break_italic}
+
+% a mathematical statement that is proved using rigorous mathematical reasoning
+\newtheorem{thm}{Theorem}[section]
+% a proved, less important than a theorem
+\newtheorem{prop}[thm]{Proposition}
+% a minor result whose sole purpose is to help in proving a theorem
+\newtheorem{lem}[thm]{Lemma}
+% a result in which the (usually short) proof relies heavily on a given theorem
+\newtheorem{cor}[thm]{Corollary}
+
+
+% New theorems with style:
+\theoremstyle{break_normal}
+% a precise and unambiguous description of the meaning of a mathematical term
+\newtheorem{defn}{Definition}[section]
+% an example
+\newtheorem{exmp}{Example}[section]
+% a statement that is unproved, but is believed to be true
+% \newtheorem{conj}{Conjecture}[section]
+
+
+% New theorems with style:
+\theoremstyle{new_remark}
+\newtheorem{rem}{Remark}[chapter]
+\newtheorem{notrem}{Notation Remark}[chapter]
+\newtheorem*{note}{Note}
+%\newtheorem{case}{Case}

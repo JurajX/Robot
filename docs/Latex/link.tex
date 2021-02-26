@@ -1,0 +1,30 @@
+% Non-rotated pendulum
+
+\begin{tikzpicture}[samples=100, smooth]
+    % link
+    \filldraw[ball color=white] plot[domain=0:360] ({cos(\x)*sqrt(4/(sin(2*\x)+1.6))+1.5}, -{sin(\x)*sqrt(4/(sin(2*\x)+1.6))+1.5});
+    % centre of mass
+    \draw (2.0, 0.8) circle[radius = 0.2];
+    \filldraw[fill=black] ( 2.0, 0.6) arc[radius=0.2, start angle=270, end angle=180] to[bend right=90] ( 2.2, 0.8) to[bend left=10] ( 2.173, 0.7) to[bend right=80] (1.87, 0.953) to[bend left=25] ( 2.07, 0.987) to[bend right=90] ( 2.0, 0.6);
+    \draw (2.0, 0.8) node[anchor = south west] {$I_i \,,\; m_i$};
+    % coordinates {i-1}
+    \draw (0.4, 0) node[anchor = north] {\{$i-1$\}};
+    \draw[thick, ->] (0, 0) -- (-0.5, -0.8) node[anchor = north] {z};
+    \draw[thick, ->] (0, 0) -- (1.5, 0) node[anchor = west] {x};
+    \draw[thick, ->] (0, 0) -- (0, 1.5) node[anchor = south] {y};
+    % coordinates {i}
+    \draw (3.2, 3) node[anchor = north] {\{$i$\}};
+    \draw[thick, ->] (3, 3) -- (2.2, 3) node[anchor = east] {z};
+    \draw[thick, ->] (3, 3) -- (3.8, 2.2) node[anchor = west] {x};
+    \draw[thick, ->] (3, 3) -- (3.8, 3.8) node[anchor = west] {y};
+    % link length
+    \draw[->] (0, 0) -- (3, 3);
+    \draw (2.2, 2.0) node[anchor = south east] {$R_i \cdot l_i$};
+    % link CoM
+    \draw[->] (0, 0) -- (2, 0.8);
+    \draw (1.0, 0.6) node[anchor = north west] {$R_i \cdot r_i$};
+
+    % q
+    \draw[->] (0.0, 0.0) -- (-0.7, 0.8);
+    \draw (-0.6, 0.8) node[anchor = north east] {$q_i$};
+\end{tikzpicture}
