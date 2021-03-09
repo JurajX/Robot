@@ -9,7 +9,7 @@ N_LINKS = [1, 3, 5, 7]
 REQUIRES_GRAD = (True, False)
 
 DTYPES = [torch.float32, torch.float64]
-DEVICES = ['cpu', 'gpu'] if torch.cuda.is_available() else ['cpu']
+DEVICES = ['cpu', 'cuda'] if torch.cuda.is_available() else ['cpu']
 
 DIRECTIONS = [torch.tensor([0., 0., 5.]), [-3., 0., 0.], (1., 1., 0.)]
 TENSORS_1D = [torch.tensor(range(1, n + 1), dtype=torch.float32) for n in N_LINKS]
@@ -179,9 +179,10 @@ class Test_RobotSetGet():
     @pytest.mark.parametrize('device', DEVICES, ids=lambda device: f"{device}")
     def test_device(self, fct_robot, device):
         """The device property should return the torch.device of the parameters of the class."""
-        fct_robot.staircase.data = fct_robot.staircase.to(device)
-        expected = fct_robot.device
-        assert expected == torch.device(device)
+        fct_robot = fct_robot.to(device=device)
+        returned = fct_robot.device.type
+        expected = torch.device(device).type
+        assert returned == expected
 
     @pytest.mark.parametrize('args',
                              itertools.product(zip(N_LINKS, TENSORS_3D, ROT_OF_P_AXES, ROT_MAT_INERTIA), DTYPES, [DIM]),
