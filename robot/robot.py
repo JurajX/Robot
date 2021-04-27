@@ -305,7 +305,7 @@ class Robot(torch.nn.Module):
             torch.Tensor - containing the principal inertias of each link
         """
         J3 = self._computeJ3()
-        return torch.cat((self.J1J2, J3.view(-1, 1)), dim=1)
+        return torch.cat((self.J1J2.abs(), J3.view(-1, 1)), dim=1)
 
     @property
     def inertia(self):
