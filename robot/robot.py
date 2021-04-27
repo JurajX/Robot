@@ -421,7 +421,7 @@ class Robot(torch.nn.Module):
 
         return massMatIner + massMatTran
 
-    def _make_EoM_parameters(self, theta):
+    def _make_EoM_parameters(self, theta, directionOfGravity=None):
         """
         Create mass matrix, Christoffel symbols, gravity torque, and potential energy of the robot.
         Arguments:
@@ -445,11 +445,17 @@ class Robot(torch.nn.Module):
         christoffelSymbols = 0.5 * (tmp.permute(0, 2, 3, 1) + tmp.permute(0, 2, 1, 3) - tmp)   # free index is the first
 
         tmp = centreOfMassCoordinates[:, :, 0, :, :]
-        potEnergy = -tmp.matmul(self.mass).matmul(self.gravAccel)
+        if directionOfGravity is not None:
+            gravAccel = self._makeTensor(directionOfGravity, device=self.device)
+            gravAccel = self.G * gravAccel / gravAccel.norm(dim=1).unsqueeze(-1)
+            tmp = tmp.matmul(self.mass)
+            potEnergy = -torch.einsum('bdi, bi -> bd', tmp, gravAccel)
+        else:
+            potEnergy = -tmp.matmul(self.mass).matmul(self.gravAccel)
 
         return massMat[:, 0], christoffelSymbols, potEnergy[:, 1:], potEnergy[:, 0]
 
-    def getAngularAcceleration(self, theta, dtheta, motorTorque=None):
+    def getAngularAcceleration(self, theta, dtheta, motorTorque=None, directionOfGravity=None):
         """
         Compute resulting angular acceleration of the robot links based on the given joint angles, angular velocities and motor torques.
         Arguments:
@@ -466,7 +472,7 @@ class Robot(torch.nn.Module):
         else:
             motorTorque = self._makeTensor(motorTorque, device=self.device)
 
-        massMat, christoffelSymbols, gravityTorque, _ = self._make_EoM_parameters(theta)
+        massMat, christoffelSymbols, gravityTorque, _ = self._make_EoM_parameters(theta, directionOfGravity)
         massMatInv = massMat.inverse()
 
         christoffelTorque = torch.einsum('bn, bmno, bo -> bm', dtheta, christoffelSymbols, dtheta)
@@ -476,7 +482,7 @@ class Robot(torch.nn.Module):
         angularAcceleration = torch.einsum('bmn, bn -> bm', massMatInv, torque)
         return angularAcceleration
 
-    def getMotorTorque(self, theta, dtheta, ddtheta):
+    def getMotorTorque(self, theta, dtheta, ddtheta, directionOfGravity=None):
         """
         Compute needed motor torques of the robot links based on the provided joint angles, angular velocities and angular accelerations.
         Arguments:
@@ -490,13 +496,13 @@ class Robot(torch.nn.Module):
         dtheta = self._makeTensor(dtheta, device=self.device)
         ddtheta = self._makeTensor(ddtheta, device=self.device)
 
-        massMat, christoffelSymbols, gravityTorque, _ = self._make_EoM_parameters(theta)
+        massMat, christoffelSymbols, gravityTorque, _ = self._make_EoM_parameters(theta, directionOfGravity)
         inertiaTorque = torch.einsum('bmn, bn -> bm', massMat, ddtheta)
         christoffelTorque = torch.einsum('bn, bmno, bo -> bm', dtheta, christoffelSymbols, dtheta)
         frictionTorque = dtheta.mul(self.damping)
         return inertiaTorque + christoffelTorque + gravityTorque + frictionTorque
 
-    def getLagrangian(self, theta, dtheta):
+    def getLagrangian(self, theta, dtheta, directionOfGravity=None):
         """
         Compute the Lagrangian of the robot.
         Arguments:
@@ -508,6 +514,6 @@ class Robot(torch.nn.Module):
         theta = self._makeTensor(theta, device=self.device)
         dtheta = self._makeTensor(dtheta, device=self.device)
 
-        massMat, _, _, potEnergy = self._make_EoM_parameters(theta)
+        massMat, _, _, potEnergy = self._make_EoM_parameters(theta, directionOfGravity)
         kinEnergy = 0.5 * torch.einsum('bm, bmn, bn -> b', dtheta, massMat, dtheta)
         return kinEnergy - potEnergy
