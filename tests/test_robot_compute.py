@@ -195,7 +195,7 @@ class Test_Computation():
 
         # create L_c
         tmp = torch.einsum('ijk, bdlnj -> bdlnik', so3gen.to(dtype=dtype, device=device), rho)
-        tmp1 = torch.einsum('bdmin, belnik -> bdemlnk', centreOfMassCoordinates, tmp)
+        tmp1 = torch.einsum('bdnim, belnik -> bdemlnk', centreOfMassCoordinates, tmp)
         Lc = tmp1[:, 0, 0]
 
         # create massMatTran

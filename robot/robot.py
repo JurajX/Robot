@@ -410,7 +410,7 @@ class Robot(torch.nn.Module):
 
         # create L_c
         tmp = torch.einsum('ijk, bdlnj -> bdlnik', self.SO3GEN, rho)
-        tmp1 = torch.einsum('bdmin, belnik -> bdemlnk', centreOfMassCoordinates, tmp)
+        tmp1 = torch.einsum('bdnim, belnik -> bdemlnk', centreOfMassCoordinates, tmp)
         Lc = tmp1[:, :, 0]
         Lc[:, 1:] = Lc[:, 1:] + tmp1[:, 0, 1:]
 
