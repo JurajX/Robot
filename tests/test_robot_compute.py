@@ -145,7 +145,7 @@ class Test_Computation():
         zeros = torch.zeros_like(rho[:, 1:, :, 0, :])
         rho[:, 1:, :, 0, :].equal(zeros)
         modBigRot = bigRot[:, :, :3, :-3].reshape(bSize, nLinks + 1, DIM, nLinks - 1, DIM)
-        rho[:, :, :, 1:, :].equal(modBigRot)
+        assert rho[:, :, :, 1:, :].equal(modBigRot)
 
     @pytest.mark.parametrize('bSize', BATCH_SIZES, ids=lambda bSize: f"batch:{bSize}")
     def test_makeCoM_Coos(self, param_robot, bSize):
@@ -172,7 +172,7 @@ class Test_Computation():
 
         expected = bigRot.matmul(tmp).reshape(bSize, nLinks + 1, nLinks, DIM, nLinks)
         returned = param_robot._makeCentreOfMassCoordinates(bigRot)
-        returned.equal(expected)
+        assert returned.equal(expected)
 
     @pytest.mark.parametrize('bSize', BATCH_SIZES, ids=lambda bSize: f"batch:{bSize}")
     def test_makeMassMatrix(self, param_robot, bSize, so3gen=SO3GEN):
@@ -203,7 +203,7 @@ class Test_Computation():
         massMatTran = torch.einsum('bmin, m, bmio -> bno', Lc_qh, param_robot.mass, Lc_qh)
         expected = massMatIner + massMatTran
         returned = param_robot._makeMassMatrix(bigRot, rho, centreOfMassCoordinates)[:, 0]
-        returned.equal(expected)
+        assert returned.allclose(expected, rtol=1e-04, atol=1e-05)
 
     def test_makeMassMatrix_diff(self, param_robot, thetas=THETAS):
         """The _makeMassMatrix member function should return a tensor of shape (batch_size, nLinks + 1, nLinks, nLinks), with the slices
