@@ -252,7 +252,7 @@ class Test_Computation():
         centreOfMassCoordinates = param_robot._makeCentreOfMassCoordinates(bigRot)
         massMat = param_robot._makeMassMatrix(bigRot, rho, centreOfMassCoordinates)
         christoffelSymbols = 0.5 * (massMat[:, 1:].permute(0, 2, 3, 1) + massMat[:, 1:].permute(0, 2, 1, 3) - massMat[:, 1:])
-        potEnergy = centreOfMassCoordinates[:, :, 0, :, :].matmul(param_robot.mass).matmul(param_robot.gravAccel)
+        potEnergy = -centreOfMassCoordinates[:, :, 0, :, :].matmul(param_robot.mass).matmul(param_robot.gravAccel)
 
         returned = param_robot._make_EoM_parameters(theta)
         assert returned[0].allclose(massMat[:, 0])

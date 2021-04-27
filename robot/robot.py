@@ -445,7 +445,7 @@ class Robot(torch.nn.Module):
         christoffelSymbols = 0.5 * (tmp.permute(0, 2, 3, 1) + tmp.permute(0, 2, 1, 3) - tmp)   # free index is the first
 
         tmp = centreOfMassCoordinates[:, :, 0, :, :]
-        potEnergy = tmp.matmul(self.mass).matmul(self.gravAccel)
+        potEnergy = -tmp.matmul(self.mass).matmul(self.gravAccel)
 
         return massMat[:, 0], christoffelSymbols, potEnergy[:, 1:], potEnergy[:, 0]
 
