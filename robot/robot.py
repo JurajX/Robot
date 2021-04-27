@@ -45,7 +45,7 @@ class Robot(torch.nn.Module):
         self.triuFrameCoordinates = self._makeTriuFrameCoordinates()
 
         self.mass = self._makeRandParameter(shape=(self.nLinks, ), requires_grad=True)
-        self.J1J2 = self._makeRandParameter(shape=(self.nLinks, self.DIM - 1), requires_grad=True)
+        self.J1J2 = self._makeRandParameter(shape=(self.nLinks, self.DIM - 1), requires_grad=True, abs=True)
         self.J1J2angle = self._makeRandParameter(shape=(self.nLinks, 1), requires_grad=True)
         self.linkCoM = self._makeRandParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
         self.rotationOfPrincipalAxes = self._makeRandParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
@@ -116,7 +116,7 @@ class Robot(torch.nn.Module):
         tensor = self._makeTensor(data, device=device, shape=shape)
         return torch.nn.Parameter(tensor, requires_grad=requires_grad)
 
-    def _makeRandParameter(self, shape, requires_grad=False):
+    def _makeRandParameter(self, shape, requires_grad=False, abs=False):
         """Create a parameter of the given shape, and populates it with random data from [0, 1).
         Arguments:
             shape              - an iterable indicating the shape of the parameter
@@ -124,7 +124,10 @@ class Robot(torch.nn.Module):
         Returns:
             torch.nn.Parameter - containing random data from [0, 1)
         """
-        tmp = torch.rand(shape, dtype=self.dtype)
+        if abs:
+            tmp = torch.rand(shape, dtype=self.dtype).abs()
+        else:
+            tmp = torch.rand(shape, dtype=self.dtype)
         return torch.nn.Parameter(tmp, requires_grad=requires_grad)
 
     def _makeStaircase(self):
