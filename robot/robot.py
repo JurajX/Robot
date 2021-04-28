@@ -273,6 +273,42 @@ class Robot(torch.nn.Module):
                                                            device=self.device,
                                                            requires_grad=requires_grad)
 
+    def setMass(self, mass, requires_grad=False):
+        """Set custom parameters for masses of links and check if it has an appropriate shape.
+        Arguments:
+            mass          - mass of each link; iterable of shape (nLinks, )
+            requires_grad - determines if the parameters are trainable; boolean (default=False)
+        Returns:
+            None
+        Raises:
+            ValueError    - the given data does not have the desired shape
+        """
+        self.mass = self._makeParameter(mass, (self.nLinks, ), device=self.device, requires_grad=requires_grad)
+
+    def setCoM(self, centreOfMass, requires_grad=False):
+        """Set custom parameters for centre of masses of links and check if it has an appropriate shape.
+        Arguments:
+            centreOfMass  - the centre of mass of the link i relative to the frame i-1, i ∈ {1, ..., nLinks}; iterable of shape (nLinks, 3)
+            requires_grad - determines if the parameters are trainable; boolean (default=False)
+        Returns:
+            None
+        Raises:
+            ValueError    - the given data does not have the desired shape
+        """
+        self.linkCoM = self._makeParameter(centreOfMass, (self.nLinks, self.DIM), device=self.device, requires_grad=requires_grad)
+
+    def setDamping(self, damping, requires_grad=False):
+        """Set custom parameters for damping of links and check if it has an appropriate shape.
+        Arguments:
+            damping       - damping coefficient at each joint; iterable of shape (nLinks, )
+            requires_grad - determines if the parameters are trainable; boolean (default=False)
+        Returns:
+            None
+        Raises:
+            ValueError    - the given data does not have the desired shape
+        """
+        self.damping = self._makeParameter(damping, (self.nLinks, ), device=self.device, requires_grad=requires_grad)
+
     def setInertialParams(self, mass, principalInertias, centreOfMass, rotOfPrincipalAxes, damping, requires_grad=False):
         """Set custom inertial parameters for the robot class.
         Arguments:
@@ -287,11 +323,11 @@ class Robot(torch.nn.Module):
         Raises:
             ValueError         - the given data does not have the desired shape
         """
-        self.mass = self._makeParameter(mass, (self.nLinks, ), device=self.device, requires_grad=requires_grad)
+        self.setMass(mass, requires_grad=requires_grad)
         self.setPrincipalInertias(principalInertias, requires_grad=requires_grad)
-        self.linkCoM = self._makeParameter(centreOfMass, (self.nLinks, self.DIM), device=self.device, requires_grad=requires_grad)
+        self.setCoM(centreOfMass, requires_grad=requires_grad)
         self.setRotOfPrincipalAxes(rotOfPrincipalAxes, requires_grad=requires_grad)
-        self.damping = self._makeParameter(damping, (self.nLinks, ), device=self.device, requires_grad=requires_grad)
+        self.setDamping(damping, requires_grad=requires_grad)
 
     @property
     def device(self):

@@ -118,6 +118,60 @@ class Test_RobotSetGet():
         assert fct_robot.rotationOfPrincipalAxes.equal(rotOfPrincipalAxes.to(dtype=dtype))
 
     @pytest.mark.parametrize('args',
+                             itertools.product(zip(N_LINKS, TENSORS_1D), DTYPES, REQUIRES_GRAD),
+                             ids=lambda args: f"n:{args[0][0]}-f{str(args[1])[-2:]}-r_grad:{'T' if args[2] else 'F'}")
+    def test_setMass(self, fct_robot, monkeypatch, args):
+        """The setMass member function should set the mass attribute."""
+        nLinks = args[0][0]
+        mass = args[0][1]
+        dtype = args[1]
+        requires_grad = args[2]
+        monkeypatch.setattr(fct_robot, 'nLinks', nLinks, raising=True)
+        monkeypatch.setattr(fct_robot, 'dtype', dtype, raising=True)
+
+        fct_robot.setMass(mass, requires_grad=requires_grad)
+
+        assert type(fct_robot.mass) is torch.nn.parameter.Parameter
+        assert fct_robot.mass.requires_grad is requires_grad
+        assert fct_robot.mass.equal(mass.to(dtype=dtype))
+
+    @pytest.mark.parametrize('args',
+                             itertools.product(zip(N_LINKS, TENSORS_3D), DTYPES, REQUIRES_GRAD),
+                             ids=lambda args: f"n:{args[0][0]}-f{str(args[1])[-2:]}-r_grad:{'T' if args[2] else 'F'}")
+    def test_setCoM(self, fct_robot, monkeypatch, args):
+        """The setInertialParams member function should set the linkCoM attribute."""
+        nLinks = args[0][0]
+        centreOfMass = args[0][1]
+        dtype = args[1]
+        requires_grad = args[2]
+        monkeypatch.setattr(fct_robot, 'nLinks', nLinks, raising=True)
+        monkeypatch.setattr(fct_robot, 'dtype', dtype, raising=True)
+
+        fct_robot.setCoM(centreOfMass, requires_grad=requires_grad)
+
+        assert type(fct_robot.linkCoM) is torch.nn.parameter.Parameter
+        assert fct_robot.linkCoM.requires_grad is requires_grad
+        assert fct_robot.linkCoM.equal(centreOfMass.to(dtype=dtype))
+
+    @pytest.mark.parametrize('args',
+                             itertools.product(zip(N_LINKS, TENSORS_1D), DTYPES, REQUIRES_GRAD),
+                             ids=lambda args: f"n:{args[0][0]}-f{str(args[1])[-2:]}-r_grad:{'T' if args[2] else 'F'}")
+    def test_setDamping(self, fct_robot, monkeypatch, args):
+        """The setInertialParams member function should set the damping attribute."""
+        nLinks = args[0][0]
+        damping = args[0][1]
+        dtype = args[1]
+        requires_grad = args[2]
+        monkeypatch.setattr(fct_robot, 'nLinks', nLinks, raising=True)
+        monkeypatch.setattr(fct_robot, 'dtype', dtype, raising=True)
+
+        fct_robot.setDamping(damping, requires_grad=requires_grad)
+
+        assert type(fct_robot.damping) is torch.nn.parameter.Parameter
+        assert fct_robot.damping.requires_grad is requires_grad
+        assert fct_robot.damping.equal(damping.to(dtype=dtype))
+
+    @pytest.mark.parametrize('args',
                              itertools.product(zip(N_LINKS, TENSORS_1D, TENSORS_3D), DTYPES, REQUIRES_GRAD, [DIM]),
                              ids=lambda args: f"n:{args[0][0]}-f{str(args[1])[-2:]}-r_grad:{'T' if args[2] else 'F'}")
     def test_setInertialParams(self, fct_robot, monkeypatch, args):
