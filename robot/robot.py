@@ -121,6 +121,7 @@ class Robot(torch.nn.Module):
         Arguments:
             shape              - an iterable indicating the shape of the parameter
             requires_grad      - determines if the parameter is trainable; boolean (default=False)
+            abs                - determines if the absolute value is applied to the randomly generated values; boolean (default=False)
         Returns:
             torch.nn.Parameter - containing random data from [0, 1)
         """
@@ -244,7 +245,7 @@ class Robot(torch.nn.Module):
         self.gravAccel = param
 
     def setPrincipalInertias(self, principalInertias, requires_grad=False):
-        """Set a custom parameters for principal inertis and check if it has an appropriate shape.
+        """Set custom parameters for principal inertis and check if it has an appropriate shape.
         Arguments:
             principalInertias  - the main principal inertias of each link; iterable of shape (nLinks, 3)
             requires_grad      - determines if the parameters are trainable; boolean (default=False)
@@ -259,7 +260,7 @@ class Robot(torch.nn.Module):
         self.J1J2angle = self._makeParameter(J1J2angle, (self.nLinks, 1), device=self.device, requires_grad=requires_grad)
 
     def setRotOfPrincipalAxes(self, rotOfPrincipalAxes, requires_grad=False):
-        """Set a custom parameters for principal inertis and check if it has an appropriate shape.
+        """Set custom parameters for principal inertias and check if it has an appropriate shape.
         Arguments:
             rotOfPrincipalAxes - coordinates of the pseudo-vectors describing the rotation of principal inertias; iterable of shape (nLinks, 3)
             requires_grad      - determines if the parameters are trainable; boolean (default=False)
@@ -429,6 +430,7 @@ class Robot(torch.nn.Module):
         Create mass matrix, Christoffel symbols, gravity torque, and potential energy of the robot.
         Arguments:
             theta                 - joint angles; iterable of shape (batch_size, nLinks)
+            directionOfGravity    - gravity direction for each sample in the base frame of the robot; iterable of shape (batch_size, 3)
         Returns:
             tuple of torch.Tensor - containing the data as described above
         """
@@ -462,11 +464,12 @@ class Robot(torch.nn.Module):
         """
         Compute resulting angular acceleration of the robot links based on the given joint angles, angular velocities and motor torques.
         Arguments:
-            theta        - joint angles; iterable of shape (batch_size, nLinks)
-            dtheta       - joint angular velocities; iterable of shape (batch_size, nLinks)
-            motorTorque  - torques applied by the motors; iterable of shape (batch_size, nLinks)
+            theta              - joint angles; iterable of shape (batch_size, nLinks)
+            dtheta             - joint angular velocities; iterable of shape (batch_size, nLinks)
+            motorTorque        - torques applied by the motors; iterable of shape (batch_size, nLinks)
+            directionOfGravity - gravity direction for each sample in the base frame of the robot; iterable of shape (batch_size, 3)
         Returns:
-            torch.Tensor - containing the computed angular accelerations
+            torch.Tensor       - containing the computed angular accelerations
         """
         theta = self._makeTensor(theta, device=self.device)
         dtheta = self._makeTensor(dtheta, device=self.device)
@@ -489,11 +492,12 @@ class Robot(torch.nn.Module):
         """
         Compute needed motor torques of the robot links based on the provided joint angles, angular velocities and angular accelerations.
         Arguments:
-            theta        - joint angles; iterable of shape (batch_size, nLinks)
-            dtheta       - joint angular velocities; iterable of shape (batch_size, nLinks)
-            ddtheta      - joint angular accelerations; iterable of shape (batch_size, nLinks)
+            theta              - joint angles; iterable of shape (batch_size, nLinks)
+            dtheta             - joint angular velocities; iterable of shape (batch_size, nLinks)
+            ddtheta            - joint angular accelerations; iterable of shape (batch_size, nLinks)
+            directionOfGravity - gravity direction for each sample in the base frame of the robot; iterable of shape (batch_size, 3)
         Returns:
-            torch.Tensor - containing the computed angular accelerations
+            torch.Tensor       - containing the computed angular accelerations
         """
         theta = self._makeTensor(theta, device=self.device)
         dtheta = self._makeTensor(dtheta, device=self.device)
@@ -509,10 +513,11 @@ class Robot(torch.nn.Module):
         """
         Compute the Lagrangian of the robot.
         Arguments:
-            theta        - joint angles; iterable of shape (batch_size, nLinks)
-            dtheta       - joint angular velocities; iterable of shape (batch_size, nLinks)
+            theta              - joint angles; iterable of shape (batch_size, nLinks)
+            dtheta             - joint angular velocities; iterable of shape (batch_size, nLinks)
+            directionOfGravity - gravity direction for each sample in the base frame of the robot; iterable of shape (batch_size, 3)
         Returns:
-            torch.Tensor - containing the computed Lagrangian of the robot
+            torch.Tensor       - containing the computed Lagrangian of the robot
         """
         theta = self._makeTensor(theta, device=self.device)
         dtheta = self._makeTensor(dtheta, device=self.device)
