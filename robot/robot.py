@@ -44,12 +44,12 @@ class Robot(torch.nn.Module):
         self.frameCoordinates = self._makeParameter(frameCoordinates, (self.nLinks, self.DIM))
         self.triuFrameCoordinates = self._makeTriuFrameCoordinates()
 
-        self.mass = self._makeRandParameter(shape=(self.nLinks, ), requires_grad=True)
-        self.J1J2 = self._makeRandParameter(shape=(self.nLinks, self.DIM - 1), requires_grad=True, abs=True)
-        self.J1J2angle = self._makeRandParameter(shape=(self.nLinks, 1), requires_grad=True)
-        self.linkCoM = self._makeRandParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
-        self.rotationOfPrincipalAxes = self._makeRandParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
-        self.damping = self._makeRandParameter(shape=(self.nLinks, ), requires_grad=True)
+        self.mass = self._makeRandnParameter(shape=(self.nLinks, ), std=1.0, requires_grad=True, abs=True)
+        self.linkCoM = self._makeZeroParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
+        self.J1J2 = self._makeRandnParameter(shape=(self.nLinks, self.DIM - 1), std=0.006, requires_grad=True, abs=True)
+        self.J1J2angle = self._makeRandnParameter(shape=(self.nLinks, 1), std=0.5, requires_grad=True)
+        self.rotationOfPrincipalAxes = self._makeZeroParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
+        self.damping = self._makeZeroParameter(shape=(self.nLinks, ), requires_grad=True)
 
     @staticmethod
     def _checkShape(tensor, shape):
@@ -116,19 +116,30 @@ class Robot(torch.nn.Module):
         tensor = self._makeTensor(data, device=device, shape=shape)
         return torch.nn.Parameter(tensor, requires_grad=requires_grad)
 
-    def _makeRandParameter(self, shape, requires_grad=False, abs=False):
-        """Create a parameter of the given shape, and populates it with random data from [0, 1).
+    def _makeRandnParameter(self, shape, std=1., requires_grad=False, abs=False):
+        """Create a parameter of the given shape, and populates it with random data from N(0, std).
         Arguments:
             shape              - an iterable indicating the shape of the parameter
+            std                - standard deviation of the normal distribution; float > 0 (default=1.)
             requires_grad      - determines if the parameter is trainable; boolean (default=False)
             abs                - determines if the absolute value is applied to the randomly generated values; boolean (default=False)
         Returns:
             torch.nn.Parameter - containing random data from [0, 1)
         """
+        tmp = torch.randn(shape, dtype=self.dtype) * std
         if abs:
-            tmp = torch.rand(shape, dtype=self.dtype).abs()
-        else:
-            tmp = torch.rand(shape, dtype=self.dtype)
+            tmp = tmp.abs()
+        return torch.nn.Parameter(tmp, requires_grad=requires_grad)
+
+    def _makeZeroParameter(self, shape, requires_grad=False):
+        """Create a parameter of the given shape, and populates it with zeros.
+        Arguments:
+            shape              - an iterable indicating the shape of the parameter
+            requires_grad      - determines if the parameter is trainable; boolean (default=False)
+        Returns:
+            torch.nn.Parameter - containing random data from [0, 1)
+        """
+        tmp = torch.zeros(shape, dtype=self.dtype)
         return torch.nn.Parameter(tmp, requires_grad=requires_grad)
 
     def _makeStaircase(self):
