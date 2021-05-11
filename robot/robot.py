@@ -518,7 +518,7 @@ class Robot(torch.nn.Module):
         massMatInv = massMat.inverse()
 
         christoffelTorque = torch.einsum('bn, bmno, bo -> bm', dtheta, christoffelSymbols, dtheta)
-        frictionTorque = dtheta.mul(self.damping)
+        frictionTorque = dtheta.mul(self.damping.abs())
 
         torque = motorTorque - christoffelTorque - gravityTorque - frictionTorque
         angularAcceleration = torch.einsum('bmn, bn -> bm', massMatInv, torque)
@@ -542,7 +542,7 @@ class Robot(torch.nn.Module):
         massMat, christoffelSymbols, gravityTorque, _ = self._make_EoM_parameters(theta, directionOfGravity)
         inertiaTorque = torch.einsum('bmn, bn -> bm', massMat, ddtheta)
         christoffelTorque = torch.einsum('bn, bmno, bo -> bm', dtheta, christoffelSymbols, dtheta)
-        frictionTorque = dtheta.mul(self.damping)
+        frictionTorque = dtheta.mul(self.damping.abs())
         return inertiaTorque + christoffelTorque + gravityTorque + frictionTorque
 
     def getLagrangian(self, theta, dtheta, directionOfGravity=None):
