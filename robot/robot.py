@@ -456,7 +456,7 @@ class Robot(torch.nn.Module):
 
         # create massMatTran
         Lc_qh = torch.einsum('bdmlnk, nk -> bdmln', Lc, self.rotationAxesOfJoints)
-        massMatTran = torch.einsum('bmin, m, bdmio -> bdno', Lc_qh[:, 0], self.mass, Lc_qh)
+        massMatTran = torch.einsum('bmin, m, bdmio -> bdno', Lc_qh[:, 0], self.mass.abs(), Lc_qh)
         massMatTran[:, 1:] = massMatTran[:, 1:] + massMatTran[:, 1:].transpose(-1, -2)
 
         return massMatIner + massMatTran
@@ -489,10 +489,10 @@ class Robot(torch.nn.Module):
         if directionOfGravity is not None:
             gravAccel = self._makeTensor(directionOfGravity, device=self.device)
             gravAccel = self.G * gravAccel / gravAccel.norm(dim=1).unsqueeze(-1)
-            tmp = tmp.matmul(self.mass)
+            tmp = tmp.matmul(self.mass.abs())
             potEnergy = -torch.einsum('bdi, bi -> bd', tmp, gravAccel)
         else:
-            potEnergy = -tmp.matmul(self.mass).matmul(self.gravAccel)
+            potEnergy = -tmp.matmul(self.mass.abs()).matmul(self.gravAccel)
 
         return massMat[:, 0], christoffelSymbols, potEnergy[:, 1:], potEnergy[:, 0]
 
