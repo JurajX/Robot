@@ -46,8 +46,7 @@ class Robot(torch.nn.Module):
 
         self.mass = self._makeRandnParameter(shape=(self.nLinks, ), std=1.0, requires_grad=True, abs=True)
         self.linkCoM = self._makeZeroParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
-        self.J1J2 = self._makeRandnParameter(shape=(self.nLinks, self.DIM - 1), std=0.006, requires_grad=True, abs=True)
-        self.J1J2angle = self._makeRandnParameter(shape=(self.nLinks, 1), std=0.5, requires_grad=True)
+        self.triangle = self._makeRandnParameter(shape=(self.nLinks, self.DIM), std=1e-6, requires_grad=True, abs=True)
         self.rotationOfPrincipalAxes = self._makeZeroParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
         self.damping = self._makeZeroParameter(shape=(self.nLinks, ), requires_grad=True)
 
@@ -209,36 +208,6 @@ class Robot(torch.nn.Module):
         triuFrameCoordinates = self._makeParameter(triuFrameCoordinates, shape)
         return triuFrameCoordinates
 
-    @staticmethod
-    def _computeAngle(principalInertias):
-        """Compute the angle between the firs two, i.e. (x, y)-axes, principal inertias from the law of cosines.
-        Arguments:
-            principalInertias - the main principal inertias of each link; iterable of shape (nLinks, 3)
-        Returns:
-            torch.Tensor      - containing the angle between the firs two principal inertias
-        """
-        square = principalInertias.square()
-        mask = torch.tensor([1., 1., -1])
-        numerator = (square * mask).sum(dim=1)
-        denominator = torch.tensor(2.) * principalInertias[:, :2].prod(dim=1)
-        angle = torch.acos(numerator / denominator).unsqueeze(-1)
-        return angle
-
-    def _computeJ3(self):
-        """Compute the third, i.e. z-axis, principal inertia from the first two and the angle between them from the law of cosines.
-        Arguments:
-            principalInertias - the main principal inertias of each link; iterable of shape (nLinks, 3)
-        Returns:
-            torch.Tensor      - containing the third principal inertia
-        """
-        J1J2sq = self.J1J2.square().sum(dim=1)
-        J1xJ2 = self.J1J2.prod(dim=1).abs()
-        cos = self.J1J2angle.squeeze().cos()
-        two = torch.tensor(2., dtype=self.dtype)
-        J3sq = J1J2sq - (two*cos*J1xJ2)
-        J3 = J3sq.sqrt()
-        return J3
-
     def setGravAccel(self, directionOfGravity, requires_grad=False):
         """Set a custom parameter for gravitational acceleration and check if it has an appropriate shape.
         Arguments:
@@ -254,35 +223,6 @@ class Robot(torch.nn.Module):
         param = self._makeParameter(directionOfGravity, shape, requires_grad=requires_grad)
         param.data *= (self.G / param.norm())
         self.gravAccel = param
-
-    def setPrincipalInertias(self, principalInertias, requires_grad=False):
-        """Set custom parameters for principal inertis and check if it has an appropriate shape.
-        Arguments:
-            principalInertias  - the main principal inertias of each link; iterable of shape (nLinks, 3)
-            requires_grad      - determines if the parameters are trainable; boolean (default=False)
-        Returns:
-            None
-        Raises:
-            ValueError         - the given data does not have the desired shape
-        """
-        J1J2J3 = self._makeTensor(principalInertias, device=self.device, shape=(self.nLinks, self.DIM))
-        J1J2angle = self._computeAngle(J1J2J3)
-        self.J1J2 = self._makeParameter(J1J2J3[:, :2], (self.nLinks, self.DIM - 1), device=self.device, requires_grad=requires_grad)
-        self.J1J2angle = self._makeParameter(J1J2angle, (self.nLinks, 1), device=self.device, requires_grad=requires_grad)
-
-    def setRotOfPrincipalAxes(self, rotOfPrincipalAxes, requires_grad=False):
-        """Set custom parameters for principal inertias and check if it has an appropriate shape.
-        Arguments:
-            rotOfPrincipalAxes - coordinates of the pseudo-vectors describing the rotation of principal inertias; iterable of shape (nLinks, 3)
-            requires_grad      - determines if the parameters are trainable; boolean (default=False)
-        Returns:
-            None
-        Raises:
-            ValueError         - the given data does not have the desired shape
-        """
-        self.rotationOfPrincipalAxes = self._makeParameter(rotOfPrincipalAxes, (self.nLinks, self.DIM),
-                                                           device=self.device,
-                                                           requires_grad=requires_grad)
 
     def setMass(self, mass, requires_grad=False):
         """Set custom parameters for masses of links and check if it has an appropriate shape.
@@ -307,6 +247,39 @@ class Robot(torch.nn.Module):
             ValueError    - the given data does not have the desired shape
         """
         self.linkCoM = self._makeParameter(centreOfMass, (self.nLinks, self.DIM), device=self.device, requires_grad=requires_grad)
+
+    def setPrincipalInertias(self, principalInertias, requires_grad=False):
+        """Set custom parameters for principal inertis and check if it has an appropriate shape.
+        Arguments:
+            principalInertias  - the main principal inertias of each link; iterable of shape (nLinks, 3)
+            requires_grad      - determines if the parameters are trainable; boolean (default=False)
+        Returns:
+            None
+        Raises:
+            ValueError         - the given data does not have the desired shape
+        """
+        J1J2J3 = self._makeTensor(principalInertias, device=self.device, shape=(self.nLinks, self.DIM))
+        J1J2J3sq = J1J2J3.square()
+        J1sq, J2sq, J3sq = J1J2J3sq[:, 0], J1J2J3sq[:, 1], J1J2J3sq[:, 2]
+        x = J1J2J3[:, 2]
+        y = (J3sq+J2sq-J1sq) / (2*x)
+        z = (J2sq - y.square()).sqrt()
+        xyz = torch.stack([x, y, z], dim=1)
+        self.triangle = self._makeParameter(xyz, (self.nLinks, self.DIM), device=self.device, requires_grad=requires_grad)
+
+    def setRotOfPrincipalAxes(self, rotOfPrincipalAxes, requires_grad=False):
+        """Set custom parameters for principal inertias and check if it has an appropriate shape.
+        Arguments:
+            rotOfPrincipalAxes - coordinates of the pseudo-vectors describing the rotation of principal inertias; iterable of shape (nLinks, 3)
+            requires_grad      - determines if the parameters are trainable; boolean (default=False)
+        Returns:
+            None
+        Raises:
+            ValueError         - the given data does not have the desired shape
+        """
+        self.rotationOfPrincipalAxes = self._makeParameter(rotOfPrincipalAxes, (self.nLinks, self.DIM),
+                                                           device=self.device,
+                                                           requires_grad=requires_grad)
 
     def setDamping(self, damping, requires_grad=False):
         """Set custom parameters for damping of links and check if it has an appropriate shape.
@@ -355,8 +328,10 @@ class Robot(torch.nn.Module):
         Returns:
             torch.Tensor - containing the principal inertias of each link
         """
-        J3 = self._computeJ3()
-        return torch.cat((self.J1J2.abs(), J3.view(-1, 1)), dim=1)
+        J3 = self.triangle[:, 0]
+        J2 = self.triangle[:, 1:].square().sum(dim=1).sqrt()
+        J1 = ((self.triangle[:, 0] - self.triangle[:, 1]).square() + self.triangle[:, 2].square()).sqrt()
+        return torch.stack([J1, J2, J3], dim=1)
 
     @property
     def inertia(self):
@@ -365,8 +340,7 @@ class Robot(torch.nn.Module):
         Returns:
             torch.Tensor - containing the inertia tensors of each link
         """
-        principalAxesInertia = self.principalAxesInertia
-        diagInertia = torch.diag_embed(principalAxesInertia)
+        diagInertia = torch.diag_embed(self.principalAxesInertia)
         L_rotationOfPrincipalAxes = torch.einsum('ni, ijk -> njk', self.rotationOfPrincipalAxes, self.SO3GEN)
         principalRot = torch.matrix_exp(L_rotationOfPrincipalAxes)
         rotatedInertia = principalRot.matmul(diagInertia).matmul(principalRot.transpose(-1, -2))
