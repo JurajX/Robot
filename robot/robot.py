@@ -48,7 +48,7 @@ class Robot(torch.nn.Module):
         self.linkCoM = self._makeZeroParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
         self.triangle = self._makeRandnParameter(shape=(self.nLinks, self.DIM), std=1e-6, requires_grad=True, abs=True)
         self.rotationOfPrincipalAxes = self._makeZeroParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
-        self.damping = self._makeZeroParameter(shape=(self.nLinks, ), requires_grad=True)
+        self.damping = self._makeRandnParameter(shape=(self.nLinks, ), std=1e-7, requires_grad=True, abs=True)
 
     @staticmethod
     def _checkShape(tensor, shape):
