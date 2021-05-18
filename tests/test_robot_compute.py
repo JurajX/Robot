@@ -11,9 +11,7 @@ cfg_name = 'test_config.yml'
 proj_name = 'tests'
 _, config_path = hlp.findProjectAndFilePaths(proj_name, [cfg_name])
 with open(config_path[cfg_name], "r") as ymlfile:
-    tmp = yaml.safe_load(ymlfile)
-    cfg = tmp['test_compute']
-    panda = tmp['panda']
+    cfg = yaml.safe_load(ymlfile)['test_compute']
 
 for key, value in cfg.items():
     cfg[key] = eval(value)
