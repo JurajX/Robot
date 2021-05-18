@@ -375,7 +375,7 @@ class Robot(torch.nn.Module):
 
         # adjust the differentials so that only the rows BDiag[:, i, :3*i, :] are non-zero i ∈ {1, ..., nLinks}
         BDiag[:, 1:] = self.staircaseIdentity[:, 1:].flip(dims=(1, 2, 3)).matmul(BDiag[:, 1:])
-        bigRot = self.makeBlockRotMat(BDiag, Nilptnt, self.staircaseIdentity)
+        bigRot = self.makeBlockRotMat(BDiag, Nilptnt, self.staircaseIdentity.expand(batch_size, -1, -1, -1))
         return bigRot
 
     def _makeRho(self, bigRot):
