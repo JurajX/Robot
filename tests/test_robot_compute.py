@@ -1,37 +1,27 @@
-import pytest
-import torch
-import robot.robot as robot
 import itertools
 
+import pytest
+import robot.helpers as hlp
+import robot.robot as robot
+import torch
+import yaml
 from tests.gradient import gradient
 
-# =========== TEST CONSTANTS ===========
-N_LINKS = [1, 3, 5, 7]
-BATCH_SIZES = [1, 8, 16, 32]
+cfg_name = 'test_config.yml'
+proj_name = 'tests'
+_, config_path = hlp.findProjectAndFilePaths(proj_name, [cfg_name])
+with open(config_path[cfg_name], "r") as ymlfile:
+    tmp = yaml.safe_load(ymlfile)
+    cfg = tmp['test_compute']
+    panda = tmp['panda']
 
-DTYPES = [torch.float32, torch.float64]
-DEVICES = ['cpu', 'cuda'] if torch.cuda.is_available() else ['cpu']
-
-so3gen = [[[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]], [[0., 0., 1.], [0., 0., 0.], [-1., 0., 0.]], [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]]]
-SO3GEN = torch.tensor(so3gen)
-
-DIRECTIONS = [torch.tensor([0., 0., 5.]), [-3., 0., 0.], (1., 1., 0.)]
-tmp = torch.tensor([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.], [-1., 0., 0.], [0., -1., 0.], [0., 0., -1.], [0., 1., 0.]])
-ROT_AXES = [tmp[:n] for n in N_LINKS]
-
-PI = 4 * torch.atan(torch.tensor(1.0, dtype=torch.float64))
-THETAS = torch.tensor([2 * PI, PI, PI / 2, PI / 3, PI / 4, PI / 6, 0.0])
-D_THETAS = torch.tensor([1., 2., 3., 4., 5., 6., 7.])
-DD_THETAS = torch.tensor([10., 20., 30., 40., 50., 60., 70.])
-
-tmp = [[0., 0., 0.1], [0., 0., 0.1], [0., 0., 0.1], [0., 0., 0.1], [0., 0., 0.1], [0., 0., 0.1], [0., 0., 0.1]]
-FRAME_COORDINATES = [tmp[:n] for n in N_LINKS]
+for key, value in cfg.items():
+    cfg[key] = eval(value)
 
 
-# =========== FIXTURES ===========
 @pytest.fixture(
     scope='function',
-    params=itertools.product(zip(N_LINKS, ROT_AXES, FRAME_COORDINATES), DIRECTIONS, DTYPES, DEVICES),
+    params=itertools.product(zip(cfg['n_links'], cfg['rot_axes'], cfg['frame_coos']), cfg['directions'], cfg['dtypes'], cfg['devices']),
     ids=lambda fixture_value: f"n:{fixture_value[0][0]}-{type(fixture_value[1]).__name__}-f{str(fixture_value[2])[-2:]}-{fixture_value[3]}")
 def param_robot(request):
     params = request.param
@@ -45,12 +35,9 @@ def param_robot(request):
     return rbt.to(device=device)
 
 
-# =========== TESTING ===========
-
-
 class Test_Computation():
 
-    @pytest.mark.parametrize('theta', THETAS, ids=lambda theta: f"{theta/PI:.2f}pi")
+    @pytest.mark.parametrize('theta', cfg['thetas'], ids=lambda theta: f"{theta/cfg['pi']:.2f}pi")
     def test_makeBigRotMat(self, param_robot, theta):
         """The part [:, 0, :, :] of the _makeBigRotMat member function output should form a block upper triangular tensor of shape (nLinks, nLinks),
         with each [3, 3] block being the proper coordinate transform."""
@@ -77,7 +64,7 @@ class Test_Computation():
         returned = param_robot._makeBigRotMat(Rot, dRot)[0, 0]
         assert returned.allclose(expected)
 
-    @pytest.mark.parametrize('theta', THETAS, ids=lambda theta: f"{theta/PI:.2f}pi")
+    @pytest.mark.parametrize('theta', cfg['thetas'], ids=lambda theta: f"{theta/cfg['pi']:.2f}pi")
     def test_makeBigRotMat_exp(self, param_robot, theta):
         """The part [:, 0, :, :] of the _makeBigRotMat member function output should form a block upper triangular tensor of shape (nLinks, nLinks),
         with each [3, 3] block being the proper coordinate transform."""
@@ -102,7 +89,7 @@ class Test_Computation():
         returned = param_robot._makeBigRotMat(Rot, dRot)[0, 0]
         assert returned.allclose(expected)
 
-    def test_makeBigRotMat_diff(self, param_robot, thetas=THETAS):
+    def test_makeBigRotMat_diff(self, param_robot, thetas=cfg['thetas']):
         """The slices [:, i, :, :] of the _makeBigRotMat member function output should represent partial derivatives of the slice [:, 0, :, :]
         w.r.t the i-th joint angle.
         Assumes that test_makeBigRotMat and test_makeBigRotMat_exp pass!"""
@@ -126,7 +113,7 @@ class Test_Computation():
         else:
             assert returned.allclose(expected, rtol=1e-04, atol=1e-05)
 
-    @pytest.mark.parametrize('bSize', BATCH_SIZES, ids=lambda bSize: f"batch:{bSize}")
+    @pytest.mark.parametrize('bSize', cfg['batch_sizes'], ids=lambda bSize: f"batch:{bSize}")
     def test_makeRho(self, param_robot, bSize):
         """The _makeRho member function should return a tensor of shape (batch_size, nLinks+1, 3, nLinks, 3) where
             * [:, 0 , :, 0 , :] are 3x3 identity matrices,
@@ -147,7 +134,7 @@ class Test_Computation():
         modBigRot = bigRot[:, :, :3, :-3].reshape(bSize, nLinks + 1, DIM, nLinks - 1, DIM)
         assert rho[:, :, :, 1:, :].equal(modBigRot)
 
-    @pytest.mark.parametrize('bSize', BATCH_SIZES, ids=lambda bSize: f"batch:{bSize}")
+    @pytest.mark.parametrize('bSize', cfg['batch_sizes'], ids=lambda bSize: f"batch:{bSize}")
     def test_makeCoM_Coos(self, param_robot, bSize):
         """The _makeCentreOfMassCoordinates member function should return a tensor of shape (bSize, nLinks + 1, nLinks, 3, nLinks), with the part
         [:, 0, i, :, j] giving the centre of mass coordinates of the (j+1)-th link expressed in the i-th frame."""
@@ -174,8 +161,8 @@ class Test_Computation():
         returned = param_robot._makeCentreOfMassCoordinates(bigRot)
         assert returned.equal(expected)
 
-    @pytest.mark.parametrize('bSize', BATCH_SIZES, ids=lambda bSize: f"batch:{bSize}")
-    def test_makeMassMatrix(self, param_robot, bSize, so3gen=SO3GEN):
+    @pytest.mark.parametrize('bSize', cfg['batch_sizes'], ids=lambda bSize: f"batch:{bSize}")
+    def test_makeMassMatrix(self, param_robot, bSize, so3gen=cfg['so3gen']):
         """The _makeMassMatrix member function should return a tensor of shape (batch_size, nLinks + 1, nLinks, nLinks), with the part
         [:, 0, :, :] being the 'mass matrix' of the robot."""
         DIM = param_robot.DIM
@@ -205,7 +192,7 @@ class Test_Computation():
         returned = param_robot._makeMassMatrix(bigRot, rho, centreOfMassCoordinates)[:, 0]
         assert returned.allclose(expected, rtol=1e-04, atol=1e-05)
 
-    def test_makeMassMatrix_diff(self, param_robot, thetas=THETAS):
+    def test_makeMassMatrix_diff(self, param_robot, thetas=cfg['thetas']):
         """The _makeMassMatrix member function should return a tensor of shape (batch_size, nLinks + 1, nLinks, nLinks), with the slices
         [:, i, :, :] represent the partial derivatives of the 'mass matrix' w.r.t. the i-th joint angle.
         Assumes that test_makeMassMatrix, test_makeCoM_Coos, test_makeRho, and test_makeBigRotMat_diff pass!"""
@@ -233,7 +220,7 @@ class Test_Computation():
         else:
             assert returned.allclose(expected, rtol=1e-04, atol=1e-03)
 
-    def test_make_EoM_parameters(self, param_robot, thetas=THETAS):
+    def test_make_EoM_parameters(self, param_robot, thetas=cfg['thetas']):
         """The _make_EoM_parameters member function should return the proper mass matrix, Christoffel symbols, gravity torque, and
         potential energy of the robot.
         Assumes that all the above test functions pass!"""
@@ -260,7 +247,7 @@ class Test_Computation():
         assert returned[2].allclose(potEnergy[:, 1:])
         assert returned[3].allclose(potEnergy[:, 0])
 
-    def test_torque(self, param_robot, thetas=THETAS, dthetas=D_THETAS, ddthetas=DD_THETAS):
+    def test_torque(self, param_robot, thetas=cfg['thetas'], dthetas=cfg['d_thetas'], ddthetas=cfg['dd_thetas']):
         """The getMotorTorque member function should return the same tensor as numerically calculated Euler-Lagrange equations."""
         nLinks = param_robot.nLinks
         dtype = param_robot.dtype
@@ -291,7 +278,7 @@ class Test_Computation():
         else:
             assert returned.allclose(expected, rtol=1e-02, atol=1e-02)
 
-    def test_acceleration(self, param_robot, thetas=THETAS, dthetas=D_THETAS):
+    def test_acceleration(self, param_robot, thetas=cfg['thetas'], dthetas=cfg['d_thetas']):
         """The getAngularAcceleration member function should return the same tensor as numerically calculated accelerations from the Euler-Lagrange
         equations."""
         nLinks = param_robot.nLinks

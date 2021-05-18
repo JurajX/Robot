@@ -1,0 +1,80 @@
+test_init_consts:
+    dim: "3"
+    n_links: "[1, 3, 5, 7]"
+    r_grads: "(True, False)"
+    dtypes: "[torch.float32, torch.float64]"
+    all_dtypes: "['float32', 'float64', 'torch.float32', 'torch.float64', torch.float32, torch.float64]"
+    bad_dtypes: "[123, '1234', 'random']"
+    shapes: "[(5, ), (5, 5), (5, 5, 5)]"
+    data: "[torch.tensor([[1., 2., 3.], [4., 5., 6.]]), [[1., 2., 3.], [4., 5., 6.]]]"
+    pi: "4 * torch.atan(torch.tensor(1.0, dtype=torch.float64))"
+    p_inertia: "torch.tensor([[3., 4., 5.], [3., 3., 3.], [2 * torch.tensor(2.).sqrt(), 2., 2.], [torch.tensor(3.).sqrt(), 1., 1.]])"
+
+test_set_get:
+    dim: "3"
+    n_links: "[1, 3, 5, 7]"
+    r_grads: "(True, False)"
+    dtypes: "[torch.float32, torch.float64]"
+    devices: "['cpu', 'cuda'] if torch.cuda.is_available() else ['cpu']"
+    directions: "[ torch.tensor([0., 0., 5.]), [-3., 0., 0.], (1., 1., 0.) ]"
+    tensor1D: "[ torch.tensor(range(1, n + 1), dtype=torch.float32) for n in [1, 3, 5, 7] ]" # list [1, 3, 5, 7] must agree with n_links
+    tensor3D: "[ torch.tensor([[5., 4., 3.]]).expand(n, -1) for n in [1, 3, 5, 7] ]" # list [1, 3, 5, 7] must agree with n_links
+    triangles: "[ torch.tensor([[3., 0., 4.]]).expand(n, -1) for n in [1, 3, 5, 7] ]" # list [1, 3, 5, 7] must agree with n_links
+    rot_of_p_axes: "[ 2*torch.atan(torch.tensor(1.0, dtype=torch.float64))*\
+                      torch.tensor([[ 1.,  0.,  0.],\
+                                   [ 0.,  1.,  0.],\
+                                   [ 0.,  0.,  1.],\
+                                   [-1.,  0.,  0.],\
+                                   [ 0., -1.,  0.],\
+                                   [ 0.,  0., -1.],\
+                                   [ 0.,  1.,  0.]])[:n] for n in [1, 3, 5, 7] ]" # list [1, 3, 5, 7] must agree with n_links
+    rot_mat: "[ torch.tensor(
+                  [[[1.,  0.,  0.], [ 0., 0., -1.], [ 0.,  1., 0.]],\
+                   [[0.,  0.,  1.], [ 0., 1.,  0.], [-1.,  0., 0.]],\
+                   [[0., -1.,  0.], [ 1., 0.,  0.], [ 0.,  0., 1.]],\
+                   [[1.,  0.,  0.], [ 0., 0.,  1.], [ 0., -1., 0.]],\
+                   [[0.,  0., -1.], [ 0., 1.,  0.], [ 1.,  0., 0.]],\
+                   [[0.,  1.,  0.], [-1., 0.,  0.], [ 0.,  0., 1.]],\
+                   [[0.,  0.,  1.], [ 0., 1.,  0.], [-1.,  0., 0.]]])[:n] for n in [1, 3, 5, 7] ]" # list [1, 3, 5, 7] must agree with n_links
+    frame_coos: "[ [[0.0, 0.0, 0.1]]*n for n in [1, 3, 5, 7]]" # list [1, 3, 5, 7] must agree with n_links
+
+test_compute:
+    n_links: "[1, 3, 5, 7]"
+    batch_sizes: "[1, 8, 16, 32]"
+    dtypes: "[torch.float32, torch.float64]"
+    devices: "['cpu', 'cuda'] if torch.cuda.is_available() else ['cpu']"
+    so3gen: "torch.tensor( [[[ 0.,  0.,  0.],\
+                             [ 0.,  0., -1.],\
+                             [ 0.,  1.,  0.]],\
+                            [[ 0.,  0.,  1.],\
+                             [ 0.,  0.,  0.],\
+                             [-1.,  0.,  0.]],\
+                            [[ 0., -1.,  0.],\
+                             [ 1.,  0.,  0.],\
+                             [ 0.,  0.,  0.]]])"
+    directions: "[torch.tensor([0., 0., 5.]), [-3., 0., 0.], (1., 1., 0.)]"
+    rot_axes: "[torch.tensor([[ 1.,  0.,  0.],\
+                              [ 0.,  1.,  0.],\
+                              [ 0.,  0.,  1.],\
+                              [-1.,  0.,  0.],\
+                              [ 0., -1.,  0.],\
+                              [ 0.,  0., -1.],\
+                              [ 0.,  1.,  0.]])[:n] for n in [1, 3, 5, 7] ]" # list [1, 3, 5, 7] must agree with n_links
+    pi: "4 * torch.atan(torch.tensor(1.0, dtype=torch.float64))"
+    thetas: "torch.tensor([8   * torch.atan(torch.tensor(1.0, dtype=torch.float64)),\
+                           4   * torch.atan(torch.tensor(1.0, dtype=torch.float64)),\
+                           2   * torch.atan(torch.tensor(1.0, dtype=torch.float64)),\
+                           4/3 * torch.atan(torch.tensor(1.0, dtype=torch.float64)),\
+                                 torch.atan(torch.tensor(1.0, dtype=torch.float64)),\
+                           2/3 * torch.atan(torch.tensor(1.0, dtype=torch.float64)),\
+                           0.0])"
+    d_thetas: "torch.tensor([1., 2., 3., 4., 5., 6., 7.])"
+    dd_thetas: "torch.tensor([10., 20., 30., 40., 50., 60., 70.])"
+    frame_coos: "[ [[0.0, 0.0, 0.1]]*n for n in [1, 3, 5, 7]]" # list [1, 3, 5, 7] must agree with n_links
+
+panda:
+    dtype: torch.float32
+    nLinks: 7
+    directionOfGravity: [0., 0., -1.]
+    rotationAxesOfJoints: [[0., 0., 1.], [0., 1., 0.], [0., 0., 1.], [0., -1., 0.], [0., 0., 1.], [0., -1., 0.], [0., 0., -1.]]
+    frameCoordinates: [[0., 0., 0.192], [0., 0., 0.194], [0.0825, 0., 0.122], [-0.0825, 0., 0.124], [0., 0., 0.26], [0.088, 0., -0.052], [0., 0., -0.055]]
