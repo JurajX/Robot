@@ -78,3 +78,39 @@ panda:
     directionOfGravity: [0., 0., -1.]
     rotationAxesOfJoints: [[0., 0., 1.], [0., 1., 0.], [0., 0., 1.], [0., -1., 0.], [0., 0., 1.], [0., -1., 0.], [0., 0., -1.]]
     frameCoordinates: [[0., 0., 0.192], [0., 0., 0.194], [0.0825, 0., 0.122], [-0.0825, 0., 0.124], [0., 0., 0.26], [0.088, 0., -0.052], [0., 0., -0.055]]
+
+single_pendulum:
+    set_size: "100"
+    dtype: "torch.float64"
+    pi: "4 * torch.atan(torch.tensor(1.0, dtype=torch.float64))" # must agree with dtype
+    g: "9.80665"
+    n_links: "1"
+    max_vel: "10."
+    direction: "[0., 0., -1.]"
+    mass: "[10]"
+    com: "torch.tensor([[0., 0., -10.]])"
+    rot_of_p_axes: "[[0., 0., 0.]]"
+    damping: "[0.]"
+    rot_axes: "torch.tensor([[0., 1., 0.]], dtype=torch.float64)" # must agree with dtype
+    f_coos: "[[0., 0., -20.]]"
+    p_inertia: "[[3., 4., 5.]]"
+
+
+double_pendulum:
+    set_size: "100"
+    dtype: "torch.float64"
+    pi: "4 * torch.atan(torch.tensor(1.0, dtype=torch.float64))" # must agree with dtype
+    g: "9.80665"
+    n_links: "2"
+    max_vel: "10."
+    direction: "[0., 0., -1.]"
+    mass: "[10., 5.]"
+    com: "torch.tensor([[0., 0., -1.], [0., 0., -2.]], dtype=torch.float64)" # must agree with dtype
+    rot_of_p_axes: "[[0., 0., 0.], [0., 0., 0.]]"
+    damping: "[0., 0.]"
+    rot_axes_planar: "torch.tensor([[0., 1., 0.], [0., 1., 0.]], dtype=torch.float64)" # must agree with dtype
+    rot_axes_non_planar: "torch.tensor([[0., 1., 0.], [1., 0., 0.]], dtype=torch.float64)" # must agree with dtype
+    f_coos_m: "torch.tensor([[0., 0., -1.], [0., 0., -2.]], dtype=torch.float64)" # must agree with dtype
+    f_coos_p: "torch.tensor([[0., 0., -2.], [0., 0., -4.]], dtype=torch.float64)" # must agree with dtype
+    p_inertias_math: "[[0., 0., 0.], [0., 0., 0.]]"
+    p_inertias_phys: "[[3., 4., 5.], [1., 2., 1.]]"
