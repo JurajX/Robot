@@ -251,7 +251,7 @@ class Robot(torch.nn.Module):
         self.linkCoM = self._makeParameter(centreOfMass, shape, device=self.device, requires_grad=requires_grad)
 
     def setPrincipalInertias(self, principalInertias, requires_grad=False):
-        """Set custom parameters for principal inertis and check if it has an appropriate shape.
+        """Set custom parameters for principal inertias and check if it has an appropriate shape.
         Arguments:
             principalInertias  - the main principal inertias of each link; iterable of shape (nLinks, 3)
             requires_grad      - determines if the parameters are trainable; boolean (default=False)
