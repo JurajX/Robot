@@ -4,7 +4,7 @@ import torch
 import yaml
 
 cfg_name = 'test_config.yml'
-proj_name = 'tests'
+proj_name = 'Robot'
 _, config_path = hlp.findProjectAndFilePaths(proj_name, [cfg_name])
 with open(config_path[cfg_name], "r") as ymlfile:
     tmp = yaml.safe_load(ymlfile)
