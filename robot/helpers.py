@@ -147,8 +147,7 @@ def findFiles(path, files, prefixes=('.', '__')):
         dirs.extend(tmp)
         for file in search_files:
             if file in root_files:
-                file_path = os.path.join(root, file)
-                file_paths[file] = file_path
+                file_paths[file] = os.path.join(root, file)
         tmp = [file for file in search_files if file not in file_paths.keys()]
         search_files = set(tmp)
     return file_paths
@@ -165,20 +164,19 @@ def findDirs(path, dirs, prefixes=('.', '__')):
     """
     search_dirs = set(dirs)
     dir_paths = {}
-    if os.path.basename(path) in search_dirs:
-        dir = os.path.basename(path)
-        dir_paths[dir] = path
-        search_dirs.remove(dir)
     for root, dirs, _ in os.walk(path):
         tmp = [dir for dir in dirs if not dir.startswith(prefixes)]
         dirs.clear()
         dirs.extend(tmp)
         for dir in search_dirs:
             if dir in dirs:
-                dir_path = os.path.join(root, dir)
-                dir_paths[dir] = dir_path
+                dir_paths[dir] = os.path.join(root, dir)
         tmp = [dir for dir in search_dirs if dir not in dir_paths.keys()]
         search_dirs = set(tmp)
+    for dir in search_dirs:
+        if dir in path:
+            root, _ = path.split(dir)
+            dir_paths[dir] = os.path.join(root, dir)
     return dir_paths
 
 
