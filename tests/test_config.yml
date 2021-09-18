@@ -36,7 +36,7 @@ test_set_get:
                    [[0.,  0., -1.], [ 0., 1.,  0.], [ 1.,  0., 0.]],\
                    [[0.,  1.,  0.], [-1., 0.,  0.], [ 0.,  0., 1.]],\
                    [[0.,  0.,  1.], [ 0., 1.,  0.], [-1.,  0., 0.]]])[:n] for n in [1, 3, 5, 7] ]" # list [1, 3, 5, 7] must agree with n_links
-    frame_coos: "[ [[0.0, 0.0, 0.1]]*n for n in [1, 3, 5, 7]]" # list [1, 3, 5, 7] must agree with n_links
+    frame_coos: "[ [[0.0, 0.0, 0.1]]*n for n in [2, 4, 6, 8]]" # list [2, 4, 6, 8] = [1, 3, 5, 7] - 1; must agree with n_links
 
 test_compute:
     n_links: "[1, 3, 5, 7]"
@@ -70,14 +70,21 @@ test_compute:
                            0.0])"
     d_thetas: "torch.tensor([1., 2., 3., 4., 5., 6., 7.])"
     dd_thetas: "torch.tensor([10., 20., 30., 40., 50., 60., 70.])"
-    frame_coos: "[ [[0.0, 0.0, 0.1]]*n for n in [1, 3, 5, 7]]" # list [1, 3, 5, 7] must agree with n_links
+    frame_coos: "[torch.tensor([[0.1, 0.2, 0.3],
+                                [0.4, 0.5, 0.6],
+                                [0.7, 0.8, 0.9],
+                                [0.1, 0.2, 0.3],
+                                [0.4, 0.5, 0.6],
+                                [0.7, 0.8, 0.9],
+                                [0.1, 0.2, 0.3],
+                                [0.4, 0.5, 0.6]])[:n] for n in [2, 4, 6, 8]]" # list [2, 4, 6, 8] = [1, 3, 5, 7] - 1; must agree with n_links
 
 panda:
     dtype: torch.float32
     nLinks: 7
     directionOfGravity: [0., 0., -1.]
     rotationAxesOfJoints: [[0., 0., 1.], [0., 1., 0.], [0., 0., 1.], [0., -1., 0.], [0., 0., 1.], [0., -1., 0.], [0., 0., -1.]]
-    frameCoordinates: [[0., 0., 0.192], [0., 0., 0.194], [0.0825, 0., 0.122], [-0.0825, 0., 0.124], [0., 0., 0.26], [0.088, 0., -0.052], [0., 0., -0.055]]
+    frameCoordinates: [[0., 0., 0.138], [0., 0., 0.192], [0., 0., 0.194], [0.0825, 0., 0.122], [-0.0825, 0., 0.124], [0., 0., 0.26], [0.088, 0., -0.052], [0., 0., -0.055]]
 
 single_pendulum:
     set_size: "100"
@@ -92,7 +99,7 @@ single_pendulum:
     rot_of_p_axes: "[[0., 0., 0.]]"
     damping: "[0.]"
     rot_axes: "torch.tensor([[0., 1., 0.]], dtype=torch.float64)" # must agree with dtype
-    f_coos: "[[0., 0., -20.]]"
+    f_coos: "[[0., 0., 1.], [0., 0., -20.]]"
     p_inertia: "[[3., 4., 5.]]"
 
 
@@ -110,7 +117,7 @@ double_pendulum:
     damping: "[0., 0.]"
     rot_axes_planar: "torch.tensor([[0., 1., 0.], [0., 1., 0.]], dtype=torch.float64)" # must agree with dtype
     rot_axes_non_planar: "torch.tensor([[0., 1., 0.], [1., 0., 0.]], dtype=torch.float64)" # must agree with dtype
-    f_coos_m: "torch.tensor([[0., 0., -1.], [0., 0., -2.]], dtype=torch.float64)" # must agree with dtype
-    f_coos_p: "torch.tensor([[0., 0., -2.], [0., 0., -4.]], dtype=torch.float64)" # must agree with dtype
+    f_coos_m: "torch.tensor([[0., 0., 0.], [0., 0., -1.], [0., 0., -2.]], dtype=torch.float64)" # must agree with dtype
+    f_coos_p: "torch.tensor([[0., 0., 0.], [0., 0., -2.], [0., 0., -4.]], dtype=torch.float64)" # must agree with dtype
     p_inertias_math: "[[0., 0., 0.], [0., 0., 0.]]"
     p_inertias_phys: "[[3., 4., 5.], [1., 2., 1.]]"

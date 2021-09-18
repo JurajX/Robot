@@ -172,14 +172,14 @@ class Test_RobotInitialisers():
         nLinks = args[0]
         DIM = args[1]
         linksXdim = nLinks * DIM
-        frameCoordinates = torch.nn.Parameter(torch.rand(nLinks, DIM), requires_grad=False)
+        frameCoordinates = torch.nn.Parameter(torch.rand(nLinks + 1, DIM), requires_grad=False)
         monkeypatch.setattr(cls_robot, 'nLinks', nLinks, raising=True)
         monkeypatch.setattr(cls_robot, 'DIM', DIM, raising=True)
         monkeypatch.setattr(cls_robot, 'linksXdim', linksXdim, raising=True)
         monkeypatch.setattr(cls_robot, 'frameCoordinates', frameCoordinates, raising=True)
 
         tmp = torch.triu(torch.ones(DIM, nLinks, nLinks), diagonal=1).transpose(0, 1).reshape(linksXdim, nLinks)
-        expected = tmp * cls_robot.frameCoordinates.reshape(linksXdim, 1)
+        expected = tmp * cls_robot.frameCoordinates[1:].reshape(linksXdim, 1)  # do not include the fram from origin to the first joint
 
         returned = cls_robot._makeTriuFrameCoordinates()
         assert type(returned) is torch.nn.parameter.Parameter

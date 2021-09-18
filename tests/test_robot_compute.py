@@ -152,7 +152,7 @@ class Test_Computation():
                 elif r == c:
                     tmp[r, :, c] = param_robot.linkCoM[r]
                 else:
-                    tmp[r, :, c] = param_robot.frameCoordinates[r]
+                    tmp[r, :, c] = param_robot.frameCoordinates[r + 1]     # disregard the coos of the first joint w.r.t the origin (frameCoordinates[0])
         tmp = tmp.reshape(linksXdim, nLinks)
 
         expected = bigRot.matmul(tmp).reshape(bSize, nLinks + 1, nLinks, DIM, nLinks)
@@ -304,3 +304,44 @@ class Test_Computation():
             assert returned.allclose(expected)
         else:
             assert returned.allclose(expected, rtol=1e-02, atol=1e-02)
+
+    def test_coordinatesOfEE(self, param_robot, thetas=cfg['thetas']):
+        """The getCoordinatesOfEE member function should return the correct position of the end effector."""
+        nLinks = param_robot.nLinks
+        dtype = param_robot.dtype
+        device = param_robot.device
+        frameCoordinates = param_robot.frameCoordinates
+        theta = thetas[:nLinks].unsqueeze(0).to(dtype=dtype)
+        theta = theta.to(device=device)
+        batch_size = theta.shape[0]
+
+        L_rotAxes = torch.einsum('ni, ijk -> njk', param_robot.rotationAxesOfJoints, param_robot.SO3GEN)
+        L_q = L_rotAxes.unsqueeze(0) * theta.view(batch_size, nLinks, 1, 1)
+        Rot = torch.matrix_exp(L_q)
+
+        scannedRot = torch.empty_like(Rot)
+        scannedRot[:, 0] = Rot[:, 0]
+        for i in range(1, nLinks):
+            scannedRot[:, i] = scannedRot[:, i - 1].bmm(Rot[:, i])
+
+        expected = frameCoordinates[0] + torch.einsum('bnij, nj -> bi', scannedRot, frameCoordinates[1:])
+        returned = param_robot.getCoordinatesOfEE(theta)
+
+        if dtype == torch.float64:
+            assert returned.allclose(expected)
+        else:
+            assert returned.allclose(expected, rtol=1e-02, atol=1e-02)
+
+    def test_defaultEE(self, param_robot):
+        """The getCoordinatesOfEE member function should return sum of the frame coordiantes as the end effector position when
+        the robot is in the home position (zero angles)."""
+        nLinks = param_robot.nLinks
+        batch_size = 1
+        dtype = param_robot.dtype
+        device = param_robot.device
+        frameCoordinates = param_robot.frameCoordinates
+        theta = torch.zeros((batch_size, nLinks), dtype=dtype, device=device)
+
+        expected = frameCoordinates.sum(dim=0)
+        returned = param_robot.getCoordinatesOfEE(theta)
+        assert returned.allclose(expected)

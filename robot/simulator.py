@@ -1,9 +1,10 @@
 import argparse
 
-import helpers as hlp
-import robot as robot
 import torch
 import yaml
+
+import helpers as hlp
+import robot as robot
 
 
 def main(init):
@@ -38,7 +39,7 @@ def main(init):
 
     for average, beta, lr in zip(averages, betas, lrs):
         avg_loss = 1.
-        print(f"target average loss: {average:.0e}")
+        print(f"----- target average loss: {average:.0e}")
         optimiser = torch.optim.Adam(rbt.parameters(), lr=lr, betas=beta, eps=1e-08, weight_decay=0, amsgrad=True)
         while (avg_loss > average):
             avg_loss = hlp.learningLoop(rbt, optimiser, loader, losses)

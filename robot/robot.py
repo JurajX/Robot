@@ -14,9 +14,9 @@ class Robot(torch.nn.Module):
         """Creates an instance of a Robot.
         Arguments:
             nLinks               - number of links (int)
-            directionOfGravity   - unit vector indicating the direction of the gravitational acceleration; iterable of shape (3)
+            directionOfGravity   - unit vector indicating the direction of the gravitational acceleration; iterable of shape (3, )
             rotationAxesOfJoints - coordinates of the pseudo-vectors parametrising the rotation axes of joints; iterable of shape (nLinks, 3)
-            frameCoordinates     - coordinates of the frame i relative to the frame i-1, i ∈ {1, ..., nLinks} ; iterable of shape (nLinks, 3)
+            frameCoordinates     - coordinates of the frame i w.r.t i-1, i ∈ {0, ..., nLinks} (i=-1 is the origin); iterable of shape (nLinks, 3)
             dtype                - type of underlying data; string, torch.float32 or torch.float64
         """
         super(Robot, self).__init__()
@@ -36,13 +36,14 @@ class Robot(torch.nn.Module):
 
         self.gravAccel = None
         self.setGravAccel(directionOfGravity)
-        tmp = self._makeTensor(rotationAxesOfJoints, shape=(self.nLinks, self.DIM))
-        tmp /= tmp.norm(dim=1, keepdim=True)
-        self.rotationAxesOfJoints = self._makeParameter(tmp, (self.nLinks, self.DIM))
-        tmp = torch.einsum('ni, ijk -> njk', self.rotationAxesOfJoints, self.SO3GEN)
-        self.L_rotationAxesOfJoints = self._makeParameter(tmp, (self.nLinks, self.DIM, self.DIM))
-        self.frameCoordinates = self._makeParameter(frameCoordinates, (self.nLinks, self.DIM))
-        self.triuFrameCoordinates = self._makeTriuFrameCoordinates()
+
+        self.rotationAxesOfJoints = None
+        self.L_rotationAxesOfJoints = None
+        self.setRotationAxesOfJoints(rotationAxesOfJoints)
+
+        self.frameCoordinates = None
+        self.triuFrameCoordinates = None
+        self.setFrameCoordinates(frameCoordinates)
 
         self.mass = self._makeRandnParameter(shape=(self.nLinks, ), std=1.0, requires_grad=True, abs=True)
         self.linkCoM = self._makeZeroParameter(shape=(self.nLinks, self.DIM), requires_grad=True)
@@ -204,15 +205,58 @@ class Robot(torch.nn.Module):
         shape = (self.linksXdim, self.nLinks)
         ones = torch.ones(self.DIM, self.nLinks, self.nLinks)
         tmp = torch.triu(ones, diagonal=1).transpose(0, 1).reshape(shape)
-        triuFrameCoordinates = tmp * self.frameCoordinates.reshape(self.linksXdim, 1)
+        triuFrameCoordinates = tmp * self.frameCoordinates[1:].reshape(self.linksXdim, 1)
         triuFrameCoordinates = self._makeParameter(triuFrameCoordinates, shape)
         return triuFrameCoordinates
+
+    def setRotationAxesOfJoints(self, rotationAxesOfJoints, requires_grad=False):
+        """Set custom parameter for rotation axes of joints and check if it has an appropriate shape.
+        Arguments:
+            directionOfGravity - value describing the direction of gravitational acceleration; iterable
+            requires_grad      - determines if the parameter is trainable; boolean (default=False)
+        Returns:
+            torch.nn.Parameter - containing gravitational acceleration vector with the norm equal to 9.80665
+        Raises:
+            ValueError         - the given directionOfGravity does not have the desired shape
+        """
+        shape_vec = (self.nLinks, self.DIM)
+        shape_mat = (self.nLinks, self.DIM, self.DIM)
+        tmp = self._makeTensor(rotationAxesOfJoints, shape=(self.nLinks, self.DIM))
+        tmp /= tmp.norm(dim=1, keepdim=True)
+        self.rotationAxesOfJoints = self._makeParameter(tmp, shape_vec, device=self.device, requires_grad=requires_grad)
+        tmp = torch.einsum('ni, ijk -> njk', self.rotationAxesOfJoints, self.SO3GEN)
+        self.L_rotationAxesOfJoints = self._makeParameter(tmp, shape_mat, device=self.device, requires_grad=False)
+
+    def normaliseRotationAxesOfJoints(self):
+        """Normalise the rotation axes of joints and recompute the associated Lie group generators.
+        Arguments:
+            None
+        Returns:
+            None
+        Raises:
+            None
+        """
+        self.rotationAxesOfJoints.data /= self.rotationAxesOfJoints.norm(dim=1, keepdim=True)
+        self.L_rotationAxesOfJoints.data = torch.einsum('ni, ijk -> njk', self.rotationAxesOfJoints, self.SO3GEN)
+
+    def setFrameCoordinates(self, frameCoordinates, requires_grad=False):
+        """Set a custom parameter for frame coordinates and check if it has an appropriate shape.
+        Arguments:
+            frameCoordinates   - coordinates of the frame i w.r.t i-1, i ∈ {0, ..., nLinks} (i=-1 is the origin); iterable of shape (nLinks, 3)
+            requires_grad      - determines if the parameter is trainable; boolean (default=False)
+        Returns:
+            torch.nn.Parameter - containing gravitational acceleration vector with the norm equal to 9.80665
+        Raises:
+            ValueError         - the given directionOfGravity does not have the desired shape
+        """
+        shape = (self.nLinks + 1, self.DIM)
+        self.frameCoordinates = self._makeParameter(frameCoordinates, shape, device=self.device, requires_grad=requires_grad)
+        self.triuFrameCoordinates = self._makeTriuFrameCoordinates()
 
     def setGravAccel(self, directionOfGravity, requires_grad=False):
         """Set a custom parameter for gravitational acceleration and check if it has an appropriate shape.
         Arguments:
             directionOfGravity - value describing the direction of gravitational acceleration; iterable
-            shape              - an iterable indicating the shape of the parameter
             requires_grad      - determines if the parameter is trainable; boolean (default=False)
         Returns:
             torch.nn.Parameter - containing gravitational acceleration vector with the norm equal to 9.80665
@@ -460,6 +504,7 @@ class Robot(torch.nn.Module):
         theta = self._makeTensor(theta, device=self.device)
         batch_size = theta.shape[0]
 
+        self.normaliseRotationAxesOfJoints()
         L_q = self.L_rotationAxesOfJoints.unsqueeze(0) * theta.view(batch_size, self.nLinks, 1, 1)
         Rot = torch.matrix_exp(L_q)
         dRot = self.L_rotationAxesOfJoints.matmul(Rot)
@@ -548,3 +593,27 @@ class Robot(torch.nn.Module):
         massMat, _, _, potEnergy = self._make_EoM_parameters(theta, directionOfGravity)
         kinEnergy = 0.5 * torch.einsum('bm, bmn, bn -> b', dtheta, massMat, dtheta)
         return kinEnergy - potEnergy
+
+    def getCoordinatesOfEE(self, theta):
+        """
+        Compute the position of the robot's end effector w.r.t the origin.
+        Arguments:
+            theta              - joint angles; iterable of shape (batch_size, nLinks)
+        Returns:
+            torch.Tensor       - containing the computed end effector position
+        """
+        theta = self._makeTensor(theta, device=self.device)
+        batch_size = theta.shape[0]
+
+        rotAxes = self.rotationAxesOfJoints / self.rotationAxesOfJoints.norm(dim=1, keepdim=True)
+        L_rotAxes = torch.einsum('ni, ijk -> njk', rotAxes, self.SO3GEN)
+        L_q = L_rotAxes.unsqueeze(0) * theta.view(batch_size, self.nLinks, 1, 1)
+        Rot = torch.matrix_exp(L_q)
+
+        eePosition = self.frameCoordinates[0].unsqueeze(0).repeat(batch_size, 1)
+        tmp = torch.eye(self.DIM, dtype=self.dtype).unsqueeze(0)
+        for i in range(self.nLinks):
+            tmp = tmp.matmul(Rot[:, i])
+            eePosition += tmp.matmul(self.frameCoordinates[i + 1])
+
+        return eePosition

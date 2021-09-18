@@ -27,6 +27,75 @@ def fct_robot():
 class Test_RobotSet():
 
     @pytest.mark.parametrize('args',
+                             itertools.product(zip(cfg['n_links'], cfg['tensor3D']), cfg['dtypes'], cfg['r_grads']),
+                             ids=lambda args: f"n:{args[0][0]}-f{str(args[1])[-2:]}-r_grad:{'T' if args[2] else 'F'}")
+    def test_setRotationAxesOfJoints(self, fct_robot, monkeypatch, args):
+        """The setRotationAxesOfJoints member function should set the rotation axes of joints attribute of the Robot class."""
+        nLinks = args[0][0]
+        rotationAxesOfJoints = args[0][1]
+        dtype = args[1]
+        requires_grad = args[2]
+        monkeypatch.setattr(fct_robot, 'dtype', dtype, raising=True)
+        monkeypatch.setattr(fct_robot, 'nLinks', nLinks, raising=True)
+        fct_robot.SO3GEN.data = fct_robot.SO3GEN.data.to(dtype=dtype)
+
+        expected1 = rotationAxesOfJoints.to(dtype=dtype).clone()
+        expected1 /= expected1.norm(dim=1, keepdim=True)
+        expected2 = torch.einsum('ni, ijk -> njk', expected1, fct_robot.SO3GEN)
+
+        fct_robot.setRotationAxesOfJoints(rotationAxesOfJoints.clone(), requires_grad=requires_grad)
+        assert type(fct_robot.rotationAxesOfJoints) is torch.nn.parameter.Parameter
+        assert fct_robot.rotationAxesOfJoints.requires_grad is requires_grad
+        assert fct_robot.rotationAxesOfJoints.allclose(expected1)
+        assert type(fct_robot.L_rotationAxesOfJoints) is torch.nn.parameter.Parameter
+        assert fct_robot.L_rotationAxesOfJoints.requires_grad is False
+        assert fct_robot.L_rotationAxesOfJoints.allclose(expected2)
+
+    @pytest.mark.parametrize('args',
+                             itertools.product(zip(cfg['n_links'], cfg['tensor3D']), cfg['dtypes']),
+                             ids=lambda args: f"n:{args[0][0]}-f{str(args[1])[-2:]}")
+    def test_normaliseRotationAxesOfJoints(self, fct_robot, monkeypatch, args):
+        """The normaliseRotationAxesOfJoints member function should properly normalise the rotation axes attribute of the Robot class."""
+        nLinks = args[0][0]
+        rotationAxesOfJoints = args[0][1]
+        dtype = args[1]
+        monkeypatch.setattr(fct_robot, 'dtype', dtype, raising=True)
+        monkeypatch.setattr(fct_robot, 'nLinks', nLinks, raising=True)
+        fct_robot.SO3GEN.data = fct_robot.SO3GEN.data.to(dtype=dtype)
+        fct_robot.rotationAxesOfJoints.data = rotationAxesOfJoints.to(dtype=dtype).clone()
+        fct_robot.L_rotationAxesOfJoints.data = torch.zeros_like(fct_robot.L_rotationAxesOfJoints)
+
+        expected1 = rotationAxesOfJoints.to(dtype=dtype).clone()
+        expected1 /= expected1.norm(dim=1, keepdim=True)
+        expected2 = torch.einsum('ni, ijk -> njk', expected1, fct_robot.SO3GEN)
+
+        fct_robot.normaliseRotationAxesOfJoints()
+        assert fct_robot.rotationAxesOfJoints.allclose(expected1)
+        assert fct_robot.L_rotationAxesOfJoints.allclose(expected2)
+
+    @pytest.mark.parametrize('args',
+                             itertools.product(zip(cfg['n_links'], cfg['frame_coos']), cfg['dtypes'], cfg['r_grads'], [cfg['dim']]),
+                             ids=lambda args: f"n:{args[0][0]}-f{str(args[1])[-2:]}-r_grad:{'T' if args[2] else 'F'}")
+    def test_setFrameCoordinates(self, fct_robot, monkeypatch, args):
+        """The setFrameCoordinates member function should set the frame coordinates attribute of the Robot class."""
+        nLinks = args[0][0]
+        frameCoordinates = args[0][1]
+        dtype = args[1]
+        requires_grad = args[2]
+        DIM = args[3]
+        monkeypatch.setattr(fct_robot, 'dtype', dtype, raising=True)
+        monkeypatch.setattr(fct_robot, 'nLinks', nLinks, raising=True)
+        monkeypatch.setattr(fct_robot, 'linksXdim', nLinks * DIM, raising=True)
+
+        expected = torch.tensor(frameCoordinates, dtype=dtype)
+
+        fct_robot.setFrameCoordinates(frameCoordinates, requires_grad=requires_grad)
+        assert type(fct_robot.frameCoordinates) is torch.nn.parameter.Parameter
+        assert fct_robot.frameCoordinates.requires_grad is requires_grad
+        assert fct_robot.frameCoordinates.equal(expected)
+        assert fct_robot.triuFrameCoordinates.equal(fct_robot._makeTriuFrameCoordinates())
+
+    @pytest.mark.parametrize('args',
                              itertools.product(cfg['directions'], cfg['dtypes'], cfg['r_grads']),
                              ids=lambda args: f"{type(args[0]).__name__}-f{str(args[1])[-2:]}-r_grad:{'T' if args[2] else 'F'}")
     def test_setGravAccel(self, fct_robot, monkeypatch, args):
