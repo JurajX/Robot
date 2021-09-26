@@ -66,17 +66,7 @@ def plotLoss(loss, offset=0):
     plt.show()
 
 
-def generateData(sim, cfg, set_size, batch_size, chunk_size=2**15):
-    """Generate random data from simulator for learning dynamic parameters.
-    Arguments:
-        sim        - simulator used to generate the data
-        cfg        - configuration file for a robot
-        set_size   - size of the dataset
-        batch_size - batch size argument for data loader
-        chunk_size - the data is generated in chunks of size chunk_size (default=2**15)
-    Returns:
-        torch.utils.data.DataLoader - containing the generated data
-    """
+def generateData(sim, cfg, set_size, chunk_size=2**15):
     gravity_direction = generateUnitVectors([set_size, 3], sim.dtype)
     thetas = generateRandomVectors(set_size, cfg['q_min'], cfg['q_max'], sim.dtype)
     dthetas = generateRandomVectors(set_size, cfg['dq_min'], cfg['dq_max'], sim.dtype)
@@ -87,13 +77,38 @@ def generateData(sim, cfg, set_size, batch_size, chunk_size=2**15):
         for b in range(0, set_size, chunk_size):
             e = b + chunk_size
             appliedTorques[b:e] = sim.getMotorTorque(thetas[b:e], dthetas[b:e], ddthetas[b:e], gravity_direction[b:e])
+    return gravity_direction, thetas, dthetas, ddthetas, appliedTorques
 
+
+def generateDataLoader(sim, cfg, set_size, batch_size, chunk_size=2**15):
+    """Generate random data from simulator for learning dynamic parameters.
+    Arguments:
+        sim        - simulator used to generate the data
+        cfg        - configuration file for a robot
+        set_size   - size of the dataset
+        batch_size - batch size argument for data loader
+        chunk_size - the data is generated in chunks of size chunk_size (default=2**15)
+    Returns:
+        torch.utils.data.DataLoader - containing the generated data
+    """
+    gravity_direction, thetas, dthetas, ddthetas, appliedTorques = generateData(sim, cfg, set_size, chunk_size)
     dataset = torch.utils.data.TensorDataset(thetas, dthetas, ddthetas, appliedTorques, gravity_direction)
     loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
     return loader
 
 
-def generateDataKin(sim, cfg, set_size, batch_size, chunk_size=2**15):
+def generateDataKin(sim, cfg, set_size, chunk_size=2**15):
+    thetas = generateRandomVectors(set_size, cfg['q_min'], cfg['q_max'], sim.dtype)
+    coordinatesOfEE = torch.empty((set_size, cfg['dim']), dtype=sim.dtype)
+
+    with torch.no_grad():
+        for b in range(0, set_size, chunk_size):
+            e = b + chunk_size
+            coordinatesOfEE[b:e] = sim.getCoordinatesOfEE(thetas[b:e])
+    return thetas, coordinatesOfEE
+
+
+def generateDataLoaderKin(sim, cfg, set_size, batch_size, chunk_size=2**15):
     """Generate random data from simulator for learning kinematic parameters.
     Arguments:
         sim        - simulator used to generate the data
@@ -104,14 +119,7 @@ def generateDataKin(sim, cfg, set_size, batch_size, chunk_size=2**15):
     Returns:
         torch.utils.data.DataLoader - containing the generated data
     """
-    thetas = generateRandomVectors(set_size, cfg['q_min'], cfg['q_max'], sim.dtype)
-    coordinatesOfEE = torch.empty((set_size, cfg['dim']), dtype=sim.dtype)
-
-    with torch.no_grad():
-        for b in range(0, set_size, chunk_size):
-            e = b + chunk_size
-            coordinatesOfEE[b:e] = sim.getCoordinatesOfEE(thetas[b:e])
-
+    thetas, coordinatesOfEE = generateDataKin(sim, cfg, set_size, chunk_size)
     dataset = torch.utils.data.TensorDataset(thetas, coordinatesOfEE)
     loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
     return loader
@@ -129,7 +137,7 @@ def learningLoop(agent, optimiser, loader, losses):
     """
     tenthOfData = len(loader.dataset) // (loader.batch_size * 10)
     start = time.time()
-    criterion = torch.nn.MSELoss(reduction='mean')
+    criterion = torch.nn.MSELoss()
     avg_loss = 0.0
     for i, data in enumerate(loader, 1):
         theta = data[0].to(device=agent.device)
@@ -156,6 +164,15 @@ def learningLoop(agent, optimiser, loader, losses):
     return avg_loss
 
 
+class MSLELoss(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.mse = torch.nn.MSELoss()
+
+    def forward(self, pred, actual):
+        return self.mse(torch.log(pred + 1), torch.log(actual + 1))
+
+
 def learningLoopKin(agent, optimiser, loader, losses):
     """Learning loop iterating over the whole dataset onece for the agent.
     Arguments:
@@ -168,8 +185,7 @@ def learningLoopKin(agent, optimiser, loader, losses):
     """
     tenthOfData = len(loader.dataset) // (loader.batch_size * 10)
     start = time.time()
-    criterion1 = torch.nn.MSELoss(reduction='mean')
-    criterion2 = torch.nn.L1Loss(reduction='mean')
+    criterion = MSLELoss()
     avg_loss = 0.0
     for i, data in enumerate(loader, 1):
         theta = data[0].to(device=agent.device)
@@ -177,7 +193,7 @@ def learningLoopKin(agent, optimiser, loader, losses):
 
         optimiser.zero_grad()
         coordinatesOfEE_est = agent.getCoordinatesOfEE(theta)
-        loss = 0.5 * (criterion1(coordinatesOfEE_est, coordinatesOfEE) + criterion2(coordinatesOfEE_est, coordinatesOfEE))
+        loss = criterion(coordinatesOfEE_est, coordinatesOfEE)
         loss.backward()
         optimiser.step()
 

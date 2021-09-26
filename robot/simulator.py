@@ -19,7 +19,7 @@ def main(init):
 
     sim = robot.Robot(panda['nLinks'], panda['directionOfGravity'], panda['rotationAxesOfJoints'], panda['frameCoordinates'], panda['dtype'])
     sim.setInertialParams(panda['mass'], panda['linkCoM'], panda['principalInertias'], panda['rotationOfPrincipalAxes'], panda['damping'])
-    loader = hlp.generateData(sim, panda, setSize, batchSize)
+    loader = hlp.generateDataLoader(sim, panda, setSize, batchSize)
 
     rbt = robot.Robot(panda['nLinks'], panda['directionOfGravity'], panda['rotationAxesOfJoints'], panda['frameCoordinates'], panda['dtype'])
     rbt.setMass(panda['mass'], False)
@@ -47,7 +47,13 @@ def main(init):
     print(f"damping error:\n{rbt.damping.abs() - sim.damping}")
     print(f"learned CoM:\n{rbt.linkCoM}\ndesired CoM\n{sim.linkCoM}")
     print(f"learned inertia:\n{rbt.inertia}\ndesired inertia\n{sim.inertia}")
-    return losses
+
+    gravityDirection, theta, dtheta, ddtheta, appliedTorque = hlp.generateData(sim, panda, 2**13)
+    appliedTorque_est = rbt.getMotorTorque(theta, dtheta, ddtheta, gravityDirection)
+    crit = torch.nn.MSELoss()
+    accuracy = crit(appliedTorque, appliedTorque_est).sqrt()
+
+    return losses, accuracy
 
 
 if __name__ == "__main__":
@@ -60,5 +66,6 @@ if __name__ == "__main__":
                    help="the initialisation of the inertial parameters, default='rand'")
     args = p.parse_args()
 
-    losses = main(args.init)
+    losses, accuracy = main(args.init)
+    print(f"The L2-loss on fresh data is: {accuracy}")
     hlp.plotLoss(losses)

@@ -17,7 +17,7 @@ def main():
 
     sim = robot.Robot(panda['nLinks'], panda['directionOfGravity'], panda['rotationAxesOfJoints'], panda['frameCoordinates'], panda['dtype'])
     sim.setInertialParams(panda['mass'], panda['linkCoM'], panda['principalInertias'], panda['rotationOfPrincipalAxes'], panda['damping'])
-    loader = hlp.generateDataKin(sim, panda, setSize, batchSize)
+    loader = hlp.generateDataLoaderKin(sim, panda, setSize, batchSize)
 
     rbt = robot.Robot(panda['nLinks'], panda['directionOfGravity'], panda['rotationAxesOfJoints'], panda['frameCoordinates'], panda['dtype'])
     rbt.setInertialParams(panda['mass'], panda['linkCoM'], panda['principalInertias'], panda['rotationOfPrincipalAxes'], panda['damping'])
@@ -26,10 +26,10 @@ def main():
     rbt.setFrameCoordinates(torch.randn(rbt.frameCoordinates.shape) * std + torch.tensor(panda['frameCoordinates']), True)
 
     betas = [(0.9, 0.999), (0.89, 0.995), (0.88, 0.98), (0.87, 0.98)]
-    lrs = [1e-5, 1e-6, 5e-8, 1e-10]
+    lrs = [1e-5, 1e-6, 5e-8, 1e-9]
 
     losses = []
-    averages = [2e-4, 2e-6, 2e-7, 2e-8]
+    averages = [2e-10, 2e-12, 2e-14, 4e-15]
 
     for average, beta, lr in zip(averages, betas, lrs):
         avg_loss = 1.
@@ -40,11 +40,16 @@ def main():
     rbt.normaliseRotationAxesOfJoints()
     print(f"learned rotationAxesOfJoints:\n{rbt.rotationAxesOfJoints}\ndesired rotationAxesOfJoints\n{sim.rotationAxesOfJoints}")
     print(f"learned frameCoordinates:\n{rbt.frameCoordinates}\ndesired frameCoordinates\n{sim.frameCoordinates}")
-    print(f"MSRE error for rotationAxesOfJoints is: {(rbt.rotationAxesOfJoints - sim.rotationAxesOfJoints).norm().sqrt()}")
-    print(f"MSRE error for frameCoordinates is:     {(rbt.frameCoordinates - sim.frameCoordinates).norm().sqrt()}")
-    return losses
+
+    theta, coordinatesOfEE = hlp.generateDataKin(sim, panda, setSize)
+    coordinatesOfEE_est = rbt.getCoordinatesOfEE(theta)
+    crit = torch.nn.MSELoss()
+    accuracy = crit(coordinatesOfEE, coordinatesOfEE_est).sqrt()
+
+    return losses, accuracy
 
 
 if __name__ == "__main__":
-    losses = main()
+    losses, accuracy = main()
+    print(f"The L2-loss on fresh data is: {accuracy}")
     hlp.plotLoss(losses)
