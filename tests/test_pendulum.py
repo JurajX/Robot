@@ -1,11 +1,13 @@
-import robot.helpers as hlp
-import robot.robot as robot
 import torch
 import yaml
 
+import src.robot as robot
+import src.utils.find_paths as paths
+import src.utils.random_vectors as vecs
+
 cfg_name = 'test_config.yml'
 proj_name = 'Robot'
-_, config_path = hlp.findProjectAndFilePaths(proj_name, [cfg_name])
+_, config_path = paths.findProjectAndFilePaths(proj_name, [cfg_name])
 with open(config_path[cfg_name], "r") as ymlfile:
     tmp = yaml.safe_load(ymlfile)
     cfg_s = tmp['single_pendulum']
@@ -26,8 +28,8 @@ class Test_SinglePendulum():
         sim.setInertialParams(cfg_s['mass'], cfg_s['com'], cfg_s['p_inertia'], cfg_s['rot_of_p_axes'], cfg_s['damping'])
         sim.triangle.data = torch.zeros_like(sim.triangle.data)    # Mathematical pendulum => no inertia tensor
 
-        thetas = hlp.generateRandomVectors(cfg_s['set_size'], [-cfg_s['pi']], [cfg_s['pi']], cfg_s['dtype'])
-        dthetas = hlp.generateRandomVectors(cfg_s['set_size'], [-cfg_s['max_vel']], [cfg_s['max_vel']], cfg_s['dtype'])
+        thetas = vecs.generateRandomVectors(cfg_s['set_size'], [-cfg_s['pi']], [cfg_s['pi']], cfg_s['dtype'])
+        dthetas = vecs.generateRandomVectors(cfg_s['set_size'], [-cfg_s['max_vel']], [cfg_s['max_vel']], cfg_s['dtype'])
 
         T = 0.5 * cfg_s['mass'][0] * (cfg_s['com'].norm() * dthetas.squeeze()).pow(2)
         V = cfg_s['mass'][0] * cfg_s['g'] * cfg_s['com'].norm() * (-1) * torch.cos(thetas.squeeze())
@@ -41,8 +43,8 @@ class Test_SinglePendulum():
         sim.setInertialParams(cfg_s['mass'], cfg_s['com'], cfg_s['p_inertia'], cfg_s['rot_of_p_axes'], cfg_s['damping'])
         sim.mass.data = torch.zeros_like(sim.mass.data)    # rotation around CoM => no potential energy
 
-        thetas = hlp.generateRandomVectors(cfg_s['set_size'], [-cfg_s['pi']], [cfg_s['pi']], cfg_s['dtype'])
-        dthetas = hlp.generateRandomVectors(cfg_s['set_size'], [-cfg_s['max_vel']], [cfg_s['max_vel']], cfg_s['dtype'])
+        thetas = vecs.generateRandomVectors(cfg_s['set_size'], [-cfg_s['pi']], [cfg_s['pi']], cfg_s['dtype'])
+        dthetas = vecs.generateRandomVectors(cfg_s['set_size'], [-cfg_s['max_vel']], [cfg_s['max_vel']], cfg_s['dtype'])
 
         projectedInertia = torch.einsum('ni, nij, nj -> ', cfg_s['rot_axes'], sim.inertia, cfg_s['rot_axes'])
         T = 0.5 * projectedInertia * dthetas.squeeze().pow(2)
@@ -56,8 +58,8 @@ class Test_SinglePendulum():
         sim = robot.Robot(cfg_s['n_links'], cfg_s['direction'], cfg_s['rot_axes'], cfg_s['f_coos'], cfg_s['dtype'])
         sim.setInertialParams(cfg_s['mass'], cfg_s['com'], cfg_s['p_inertia'], cfg_s['rot_of_p_axes'], cfg_s['damping'])
 
-        thetas = hlp.generateRandomVectors(cfg_s['set_size'], [-cfg_s['pi']], [cfg_s['pi']], cfg_s['dtype'])
-        dthetas = hlp.generateRandomVectors(cfg_s['set_size'], [-cfg_s['max_vel']], [cfg_s['max_vel']], cfg_s['dtype'])
+        thetas = vecs.generateRandomVectors(cfg_s['set_size'], [-cfg_s['pi']], [cfg_s['pi']], cfg_s['dtype'])
+        dthetas = vecs.generateRandomVectors(cfg_s['set_size'], [-cfg_s['max_vel']], [cfg_s['max_vel']], cfg_s['dtype'])
 
         projectedInertia = torch.einsum('ni, nij, nj -> ', cfg_s['rot_axes'], sim.inertia, cfg_s['rot_axes'])
         T = 0.5 * cfg_s['mass'][0] * (cfg_s['com'].norm() * dthetas.squeeze()).pow(2) + 0.5 * projectedInertia * dthetas.squeeze().pow(2)
@@ -75,8 +77,8 @@ class Test_DoublePendulum():
         sim.setInertialParams(cfg_d['mass'], cfg_d['com'], cfg_d['p_inertias_math'], cfg_d['rot_of_p_axes'], cfg_d['damping'])
         sim.triangle.data = torch.zeros_like(sim.triangle.data)
 
-        thetas = hlp.generateRandomVectors(cfg_d['set_size'], [-cfg_d['pi']] * 2, [cfg_d['pi']] * 2, cfg_d['dtype'])
-        dthetas = hlp.generateRandomVectors(cfg_d['set_size'], [-cfg_d['max_vel']] * 2, [cfg_d['max_vel']] * 2, cfg_d['dtype'])
+        thetas = vecs.generateRandomVectors(cfg_d['set_size'], [-cfg_d['pi']] * 2, [cfg_d['pi']] * 2, cfg_d['dtype'])
+        dthetas = vecs.generateRandomVectors(cfg_d['set_size'], [-cfg_d['max_vel']] * 2, [cfg_d['max_vel']] * 2, cfg_d['dtype'])
 
         V1 = cfg_d['mass'][0] * cfg_d['g'] * cfg_d['com'][0].norm() * (-torch.cos(thetas[:, 0]))
         V2 = cfg_d['mass'][1] * cfg_d['g'] * cfg_d['com'][0].norm() * (-torch.cos(thetas[:, 0]))
@@ -98,8 +100,8 @@ class Test_DoublePendulum():
         sim = robot.Robot(cfg_d['n_links'], cfg_d['direction'], cfg_d['rot_axes_planar'], cfg_d['f_coos_p'], cfg_d['dtype'])
         sim.setInertialParams(cfg_d['mass'], cfg_d['com'], cfg_d['p_inertias_phys'], cfg_d['rot_of_p_axes'], cfg_d['damping'])
 
-        thetas = hlp.generateRandomVectors(cfg_d['set_size'], [-cfg_d['pi']] * 2, [cfg_d['pi']] * 2, cfg_d['dtype'])
-        dthetas = hlp.generateRandomVectors(cfg_d['set_size'], [-cfg_d['max_vel']] * 2, [cfg_d['max_vel']] * 2, cfg_d['dtype'])
+        thetas = vecs.generateRandomVectors(cfg_d['set_size'], [-cfg_d['pi']] * 2, [cfg_d['pi']] * 2, cfg_d['dtype'])
+        dthetas = vecs.generateRandomVectors(cfg_d['set_size'], [-cfg_d['max_vel']] * 2, [cfg_d['max_vel']] * 2, cfg_d['dtype'])
 
         V1 = cfg_d['mass'][0] * cfg_d['g'] * cfg_d['com'][0].norm() * (-torch.cos(thetas[:, 0]))
         V2 = cfg_d['mass'][1] * cfg_d['g'] * cfg_d['f_coos_p'][0 + 1].norm() * (-torch.cos(thetas[:, 0]))
@@ -124,8 +126,8 @@ class Test_DoublePendulum():
         sim = robot.Robot(cfg_d['n_links'], cfg_d['direction'], cfg_d['rot_axes_non_planar'], cfg_d['f_coos_p'], cfg_d['dtype'])
         sim.setInertialParams(cfg_d['mass'], cfg_d['com'], cfg_d['p_inertias_phys'], cfg_d['rot_of_p_axes'], cfg_d['damping'])
 
-        thetas = hlp.generateRandomVectors(cfg_d['set_size'], [-cfg_d['pi']] * 2, [cfg_d['pi']] * 2, cfg_d['dtype'])
-        dthetas = hlp.generateRandomVectors(cfg_d['set_size'], [-cfg_d['max_vel']] * 2, [cfg_d['max_vel']] * 2, cfg_d['dtype'])
+        thetas = vecs.generateRandomVectors(cfg_d['set_size'], [-cfg_d['pi']] * 2, [cfg_d['pi']] * 2, cfg_d['dtype'])
+        dthetas = vecs.generateRandomVectors(cfg_d['set_size'], [-cfg_d['max_vel']] * 2, [cfg_d['max_vel']] * 2, cfg_d['dtype'])
 
         V1 = cfg_d['mass'][0] * cfg_d['g'] * cfg_d['com'][0].norm() * (-torch.cos(thetas[:, 0]))
         V2 = cfg_d['mass'][1] * cfg_d['g'] * cfg_d['f_coos_p'][0 + 1].norm() * (-torch.cos(thetas[:, 0]))

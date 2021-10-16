@@ -1,14 +1,15 @@
 import itertools
 
 import pytest
-import robot.helpers as hlp
-import robot.robot as robot
 import torch
 import yaml
 
+import src.robot as robot
+import src.utils.find_paths as paths
+
 cfg_name = 'test_config.yml'
 proj_name = 'Robot'
-_, config_path = hlp.findProjectAndFilePaths(proj_name, [cfg_name])
+_, config_path = paths.findProjectAndFilePaths(proj_name, [cfg_name])
 with open(config_path[cfg_name], "r") as ymlfile:
     tmp = yaml.safe_load(ymlfile)
     cfg = tmp['test_init_consts']

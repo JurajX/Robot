@@ -1,15 +1,16 @@
 import itertools
 
 import pytest
-import robot.helpers as hlp
-import robot.robot as robot
 import torch
 import yaml
+
+import src.robot as robot
+import src.utils.find_paths as paths
 from tests.gradient import gradient
 
 cfg_name = 'test_config.yml'
 proj_name = 'Robot'
-_, config_path = hlp.findProjectAndFilePaths(proj_name, [cfg_name])
+_, config_path = paths.findProjectAndFilePaths(proj_name, [cfg_name])
 with open(config_path[cfg_name], "r") as ymlfile:
     cfg = yaml.safe_load(ymlfile)['test_compute']
 
@@ -152,7 +153,7 @@ class Test_Computation():
                 elif r == c:
                     tmp[r, :, c] = param_robot.linkCoM[r]
                 else:
-                    tmp[r, :, c] = param_robot.frameCoordinates[r + 1]     # disregard the coos of the first joint w.r.t the origin (frameCoordinates[0])
+                    tmp[r, :, c] = param_robot.frameCoordinates[r + 1]     # disregard the coos of the first frame w.r.t the origin
         tmp = tmp.reshape(linksXdim, nLinks)
 
         expected = bigRot.matmul(tmp).reshape(bSize, nLinks + 1, nLinks, DIM, nLinks)

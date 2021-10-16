@@ -1,16 +1,22 @@
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(sys.path[0]))
+
 import argparse
 
 import torch
 import yaml
 
-import helpers as hlp
-import robot as robot
+import src.robot as robot
+import src.utils.find_paths as paths
+import src.utils.training_helpers as hlp
 
 
 def main(init):
     cfg_name = 'config.yml'
     proj_name = 'Robot'
-    _, config_path = hlp.findProjectAndFilePaths(proj_name, [cfg_name])
+    _, config_path = paths.findProjectAndFilePaths(proj_name, [cfg_name])
     with open(config_path[cfg_name], "r") as ymlfile:
         panda = yaml.safe_load(ymlfile)['panda']
 
