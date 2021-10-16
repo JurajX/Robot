@@ -1,0 +1,145 @@
+<mujoco model="Panda">
+    <compiler meshdir="panda_stl/" inertiafromgeom="auto" angle="radian" />
+
+    <option timestep="0.001" gravity="0 0 -9.80665" magnetic="0 0 0" integrator="RK4" collision="predefined" cone="elliptic" jacobian="dense" solver="Newton" iterations="50" tolerance="1e-10"/>
+
+    <size nconmax="200" njmax="400" nstack="10000"/>
+
+    <default>
+        <joint limited="true" damping="1" armature="0"/>
+        <geom condim="1" material="matgeom"/>
+        <motor ctrlrange="-87.0 87.0" ctrllimited="true"/>
+    </default>
+
+    <visual>
+        <map force="0.1" zfar="30"/>
+        <rgba haze="0.15 0.25 0.35 1"/>
+        <quality shadowsize="2048"/>
+        <global offwidth="800" offheight="800"/>
+    </visual>
+
+    <asset>
+        <mesh name="base"         file="link0.stl"/>
+        <mesh name="link1"        file="link1.stl"/>
+        <mesh name="link2"        file="link2.stl"/>
+        <mesh name="link3"        file="link3.stl"/>
+        <mesh name="link4"        file="link4.stl"/>
+        <mesh name="link5"        file="link5.stl"/>
+        <mesh name="link6"        file="link6.stl"/>
+        <mesh name="link7"        file="link7.stl"/>
+        <!-- <mesh name="link_hand"    file="hand.stl"/> -->
+        <!-- <mesh name="link_finger"  file="finger.stl"/> -->
+
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512"/>
+        <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" width="512" height="512" mark="cross" markrgb=".8 .8 .8"/>
+        <texture name="texgeom" type="cube" builtin="flat" mark="cross" width="127" height="1278" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1" random="0.01"/>
+        <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="1 1" texuniform="true"/>
+        <material name="matgeom" texture="texgeom" texuniform="true" rgba="0.8 0.6 .4 1"/>
+    </asset>
+
+  <worldbody>
+    <geom name="floor" pos="0 0 0" size="0 0 .25" type="plane" material="matplane" condim="3"/>
+    <light directional="false" diffuse=".2 .2 .2" specular="0 0 0" pos="0 0 5" dir="0 0 -1" castshadow="false"/>
+    <light mode="targetbodycom" target="panda" directional="false" diffuse=".8 .8 .8" specular="0.3 0.3 0.3" pos="0 0 4.0" dir="0 0 -1"/>
+
+    <body name="panda" pos="0 0 0" euler="0 0 0">
+      <geom type="mesh" mesh="base" rgba="1 1 1 1"/>
+
+      <body name="link1" pos="0 0 0.333" euler="0 0 0" >
+        <inertial pos="0 -0.04 -0.052" mass="3.5" diaginertia="0.018 0.018 0.0044" euler="0.349 0 0"/>
+        <geom name="link1" type="mesh" mesh="link1" rgba="1 1 1 1"/>
+        <joint name="link1" type="hinge" pos="0 0 0" axis="0 0 1" range="-2.8973 2.8973" damping="0.1" stiffness="0" armature="0.0002" />
+        <site name="sensorlink1" pos="0 0.0 0" size=".03 .03 .03" type="ellipsoid" rgba="1 1 1 1"/>
+
+        <body name="link2" pos="0 0 0" euler="0 0 0" >
+          <inertial pos="0 0.04 0.052" mass="3.5" diaginertia="0.018 0.018 0.0044" euler="0.349 0 0"/>
+          <geom name="link2" type="mesh" mesh="link2" rgba="1 1 1 1"/>
+          <joint name="link2" type="hinge" pos="0 0 0.0" axis="0 1 0" range="-1.7628 1.7628" damping="0.1" stiffness="0" armature="0.0002" />
+          <site name="sensorlink2" pos="0 0.0 0" size=".03 .03 .03" type="ellipsoid" rgba="1 1 1 1"/>
+
+          <body name="link3" pos="0 0 0.316" euler="0 0 0" >
+            <inertial pos="0.044 0.02 -0.044" mass="2.5" diaginertia="0.0088 0.0088 0.0025" euler="0 0.785 0"/>
+            <geom name="link3" type="mesh" mesh="link3" rgba="1 1 1 1"/>
+            <joint name="link3" type="hinge" pos="0 0 0" axis="0 0 1" range="-2.8973 2.8973" damping="0.1" stiffness="0" armature="0.0002" />
+            <site name="sensorlink3" pos="0 0.0 0" size=".03 .03 .03" type="ellipsoid" rgba="1 1 1 1"/>
+
+            <body name="link4" pos="0.0825 0 0" euler="0 0 0" >
+              <inertial pos="-0.0385 -0.02 0.044" mass="2.5" diaginertia="0.0088 0.0088 0.0025" euler="0 -0.785 0"/>
+              <geom name="link4" type="mesh" mesh="link4" rgba="1 1 1 1"/>
+              <joint name="link4" type="hinge" pos="0 0 0" axis="0 -1 0" range="-3.0718 0" damping="0.1" stiffness="0" armature="0.0002" />
+              <site name="sensorlink4" pos="0 0.0 0" size=".03 .03 .03" type="ellipsoid" rgba="1 1 1 1"/>
+
+              <body name="link5" pos="-0.0825 0 0.384" euler="0 0 0" >
+                <inertial pos="0 0.04 -0.11" mass="3.0" diaginertia="0.01 0.01 0.003" euler="-0.175 0 0"/>
+                <geom name="link5" type="mesh" mesh="link5" rgba="1 1 1 1"/>
+                <joint name="link5" type="hinge" pos="0 0 0" axis="0 0 1" range="-2.8973 2.8973" damping="0.1" stiffness="0" armature="0.0002" />
+                <site name="sensorlink5" pos="0 0.0 0" size=".03 .03 .03" type="ellipsoid" rgba="1 1 1 1"/>
+
+                <body name="link6" pos="0 0 0" euler="0 0 0" >
+                  <inertial pos="0.065 -0.01 0.01" mass="2.0" diaginertia="0.004 0.006 0.004" euler="0 0 0"/>
+                  <geom name="link6" type="mesh" mesh="link6" rgba="1 1 1 1"/>
+                  <joint name="link6" type="hinge" pos="0 0 0" axis="0 -1 0" range="-0.0175 3.7525" damping="0.1" stiffness="0" armature="0.0002" />
+                  <site name="sensorlink6" pos="0 0.0 0" size=".03 .03 .03" type="ellipsoid" rgba="1 1 1 1"/>
+
+                  <body name="link7" pos="0.088 0 0" euler="0 0 0" >
+                    <inertial pos="0 0 -0.08" mass="0.5" diaginertia="0.0002 0.0002 0.0003" euler="0 0 0"/>
+                    <geom name="link7" type="mesh" mesh="link7" rgba="1 1 1 1"/>
+                    <joint name="link7" type="hinge" pos="0 0 0" axis="0 0 -1" range="-2.8973 2.8973" damping="0.1" stiffness="0" armature="0.0002" />
+                    <site name="sensorlink7" pos="0 0.0 0" size=".03 .03 .03" type="ellipsoid" rgba="1 1 1 1"/>
+
+                    <!-- <body name="link_hand" pos="0 0 -0.107" euler="0 0 0" >
+                      <inertial pos="0 0 -0.03" mass="0.6" diaginertia="0.001 0.0025 0.0017" euler="0 0 -0.785"/>
+                      <geom name="link_hand" type="mesh" mesh="link_hand" rgba="1 1 1 1"/>
+                      <body name="link_finger_right" pos="0 0 -0.06" euler="0 0 0" >
+                        <geom name="link_finger_right" type="mesh" mesh="link_finger" rgba="1 1 1 1"/>
+                        <joint name="link_finger_right" type="slide" pos="0 0 0" axis="-1 1 0" range="0 0.05" damping="0.1" stiffness="0" armature="0.0002" />
+                      </body>
+                      <body name="link_finger_left" pos="0 0 -0.06" euler="0 0 3.142" >
+                        <geom name="link_finger_left" type="mesh" mesh="link_finger" rgba="1 1 1 1"/>
+                        <joint name="link_finger_left" type="slide" pos="0 0 0" axis="-1 1 0" range="0 0.05" damping="0.1" stiffness="0" armature="0.0002" />
+                      </body>
+                    </body> -->
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+      <motor name='j1'  gear='1' joint='link1'/>
+      <motor name='j2'  gear='1' joint='link2'/>
+      <motor name='j3'  gear='1' joint='link3'/>
+      <motor name='j4'  gear='1' joint='link4'/>
+      <motor name='j5'  gear='1' joint='link5'/>
+      <motor name='j6'  gear='1' joint='link6'/>
+      <motor name='j7'  gear='1' joint='link7'/>
+
+      <!-- <motor name='jgr'  gear='1' joint='link_finger_right'/> -->
+      <!-- <motor name='jgl'  gear='1' joint='link_finger_left'/> -->
+  </actuator>
+
+  <sensor>
+      <jointpos name="j1_pos"    joint="link1"/>
+      <torque   name="j1_torque" site="sensorlink1"/>
+      <jointpos name="j2_pos"    joint="link2"/>
+      <torque   name="j2_torque" site="sensorlink2"/>
+      <jointpos name="j3_pos"    joint="link3"/>
+      <torque   name="j3_torque" site="sensorlink3"/>
+      <jointpos name="j4_pos"    joint="link4"/>
+      <torque   name="j4_torque" site="sensorlink4"/>
+      <jointpos name="j5_pos"    joint="link5"/>
+      <torque   name="j5_torque" site="sensorlink5"/>
+      <jointpos name="j6_pos"    joint="link6"/>
+      <torque   name="j6_torque" site="sensorlink6"/>
+      <jointpos name="j7_pos"    joint="link7"/>
+      <torque   name="j7_torque" site="sensorlink7"/>
+
+      <!-- <jointpos name="jgr_pos"	joint="link_finger_right"/> -->
+      <!-- <jointpos name="jgl_pos"	joint="link_finger_left"/> -->
+  </sensor>
+
+</mujoco>
