@@ -16,7 +16,7 @@ class Robot(torch.nn.Module):
             nLinks               - number of links (int)
             directionOfGravity   - unit vector indicating the direction of the gravitational acceleration; iterable of shape (3, )
             rotationAxesOfJoints - coordinates of the pseudo-vectors parametrising the rotation axes of joints; iterable of shape (nLinks, 3)
-            frameCoordinates     - coordinates of the frame i w.r.t i-1, i ∈ {0, ..., nLinks} (i=-1 is the origin); iterable of shape (nLinks, 3)
+            frameCoordinates     - coordinates of the frame i w.r.t i-1, i ∈ {0, ..., nLinks} (i=-1 is the origin); iterable of shape (nLinks + 1, 3)
             dtype                - type of underlying data; string, torch.float32 or torch.float64
         """
         super(Robot, self).__init__()
