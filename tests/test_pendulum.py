@@ -138,7 +138,7 @@ class Test_DoublePendulum():
         Lq = Lq.reshape([cfg_d['set_size'], cfg_d['n_links'], 3, 3])
         R = torch.matrix_exp(Lq)
         R12 = R[:, 0].matmul(R[:, 1])
-        Inertia = torch.empty(100, 2, 2, dtype=cfg_d['dtype'])
+        Inertia = torch.empty(cfg_d['set_size'], 2, 2, dtype=cfg_d['dtype'])
         tmp = sim.inertia[0] + R12.matmul(sim.inertia[1]).matmul(R12.transpose(1, 2))
         Inertia[:, 0, 0] = tmp.matmul(cfg_d['rot_axes_non_planar'][0]).matmul(cfg_d['rot_axes_non_planar'][0])
         tmp = R[:, 1].matmul(sim.inertia[1]).matmul(R12.transpose(1, 2))
